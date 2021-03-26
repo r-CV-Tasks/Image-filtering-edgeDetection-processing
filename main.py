@@ -1,13 +1,11 @@
 # Importing Packages
-import sys
-from PyQt5 import QtWidgets, QtCore
+import os, sys
+from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QMessageBox
 import mainGUI2 as m
 import cv2
 import numpy as np
 from imageModel import ImageModel
-
-
 
 # importing module
 import logging
@@ -82,9 +80,11 @@ class ImageProcessor(m.Ui_MainWindow):
         :param imgID: 0 or 1
         :return:
         """
+
+
         # Open File & Check if it was loaded correctly
         logger.info("Browsing the files...")
-        repo_path = "D:\Study\Courses\College\Computer-Vision-Tasks-4th-Year\Image-filtering-edgeDetection-processing\src\Images"
+        repo_path = "./src/Images"
         self.filename, self.format = QtWidgets.QFileDialog.getOpenFileName(None, "Load Image", repo_path,
                                                                            "*.jpg;;" "*.jpeg;;" "*.png;;")
         imgName = self.filename.split('/')[-1]
@@ -115,7 +115,6 @@ class ImageProcessor(m.Ui_MainWindow):
                     self.displayImage(self.imagesModels[imgID].imgByte, self.inputImages[imgID])
                     self.updateCombos[imgID].setEnabled(True)
                     logger.info(f"Added Image{imgID + 1}: {imgName} successfully")
-
 
     def updateCombosChanged(self, id):
         selectedComponent = self.updateCombos[id].currentText().lower()
@@ -170,6 +169,7 @@ class ImageProcessor(m.Ui_MainWindow):
         widget.view.setRange(xRange=[0, self.imagesModels[0].imgShape[0]], yRange=[0, self.imagesModels[0].imgShape[1]],
                              padding=0)
         widget.ui.roiPlot.hide()
+
 
     def showMessage(self, header, message, button, icon):
         msg = QMessageBox()
