@@ -125,6 +125,10 @@ class ImageProcessor(m.Ui_MainWindow):
                 self.updateCombos[imgID + 1].setEnabled(True)
                 self.updateCombos[imgID + 2].setEnabled(True)
 
+                # Enable SNR Text
+                self.snr_ratio.setEnabled(True)
+                self.mask_size.setEnabled(True)
+
                 # Set Image Name and Size
                 self.imagesLabels[imgID].setText(imgName)
                 self.imagesSizes[imgID].setText(f"{image.shape[0]}x{image.shape[1]}")
