@@ -17,7 +17,6 @@ class ImageModel():
         self.imgPath = imgPath
         self.imgByte = cv2.imread(self.imgPath, flags=cv2.IMREAD_GRAYSCALE).T
         self.imgShape = self.imgByte.shape
-        self.dft = np.fft.fft2(self.imgByte)
 
         # Noisy images
         self.uniform_noise = self.add_noise("uniform")
