@@ -36,11 +36,13 @@ class ImageProcessor(m.Ui_MainWindow):
         # self.loadButtons = [self.actionImage_1, self.actionImage_2]
 
         # Images Lists
-        self.inputImages = [self.img1_input, self.img2_input]
-        self.outputImages = [self.img1_noisy, self.img1_filtered, self.img1_edged]
-        self.imageWidgets = [self.img1_input, self.img1_noisy, self.img1_filtered, self.img1_edged]
+        self.inputImages = [self.img1_input, self.img2_input, self.imgA_input, self.imgB_input]
+        self.filtersImages = [self.img1_noisy, self.img1_filtered, self.img1_edged]
+        self.imageWidgets = [self.img1_input, self.img1_noisy, self.img1_filtered, self.img1_edged,
+                             self.img2_input, self.img2_input_histo, self.img2_output_histo, self.img2_output,
+                             self.imgA_input, self.imgB_input, self.imgX_output]
 
-        self.imagesModels = [..., ...]
+        self.imagesModels = [..., ..., ..., ...]
         self.heights = [..., ...]
         self.weights = [..., ...]
 
