@@ -2,7 +2,7 @@
 import os, sys
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QMessageBox
-import mainGUI2 as m
+from UI import mainGUI as m
 import cv2
 import numpy as np
 from imageModel import ImageModel
@@ -154,7 +154,6 @@ class ImageProcessor(m.Ui_MainWindow):
             edged_image = self.imagesModels[0].apply_edge_mask(type="canny")
             self.displayImage(edged_image, self.outputImages[id])
 
-
         logger.info(f"Viewing {selectedComponent} Component Of Image{id + 1}")
 
     def displayImage(self, data, widget):
@@ -169,8 +168,8 @@ class ImageProcessor(m.Ui_MainWindow):
                              padding=0)
         widget.ui.roiPlot.hide()
 
-
-    def showMessage(self, header, message, button, icon):
+    @staticmethod
+    def showMessage(header, message, button, icon):
         msg = QMessageBox()
         msg.setWindowTitle(header)
         msg.setText(message)
