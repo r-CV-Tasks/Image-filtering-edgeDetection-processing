@@ -28,7 +28,7 @@ def UniformNoise(source: np.ndarray, snr: float) -> np.ndarray:
     :param snr : Signal to Noise Ratio
     :return: Noisy Image
     """
-    # Create Noise
+    # Create Noise Mask, Following a Uniform Distribution
     noise = np.random.uniform(-255, 255, size=source.shape)
     src = np.copy(source)
 
@@ -49,6 +49,7 @@ def GaussianNoise(source: np.ndarray, sigma: [int, float], snr: float) -> np.nda
     :param sigma: Noise Variance
     :return: Noisy Image
     """
+    # Create Noise Mask, Following the Gaussian Distribution
     noise = np.random.normal(0, sigma, size=source.shape)
     src = np.copy(source)
     out = src*snr + noise * (1-snr)
@@ -58,5 +59,18 @@ def GaussianNoise(source: np.ndarray, sigma: [int, float], snr: float) -> np.nda
     return out.astype(int)
 
 
-def SaltPepperNoise(source: np.ndarray, snr: float) ->np.ndarray:
-    pass
+def SaltPepperNoise(source: np.ndarray, snr: float) -> np.ndarray:
+    """
+        Implementation of the Salt and Pepper/Impulse Noise
+    :param source: Image to add Noise to
+    :param snr: Signal to Noise Ratio
+    :return: Noisy Image
+    """
+    # Create Noise Mask, Randomly select pixels to be either 0 or 255
+    noise = np.random.choice((0, 1, 2), size=source.shape, p=[snr, (1-snr)/2, (1-snr)/2])
+    src = np.copy(source)
+
+    # Apply Noise Mask
+    src[noise == 1] = 255
+    src[noise == 2] = 0
+    return src
