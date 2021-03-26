@@ -81,7 +81,6 @@ class ImageProcessor(m.Ui_MainWindow):
         :return:
         """
 
-
         # Open File & Check if it was loaded correctly
         logger.info("Browsing the files...")
         repo_path = "./src/Images"
