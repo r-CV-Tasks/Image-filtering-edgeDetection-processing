@@ -71,6 +71,16 @@ class ImageProcessor(m.Ui_MainWindow):
 
         self.setupImagesView()
 
+        self.img2_input_histo.plotItem.setTitle("Histogram")
+        self.img2_input_histo.plotItem.showGrid(True, True, alpha=0.8)
+        self.img2_input_histo.plotItem.setLabel("bottom", text="Pixels")
+
+        x = np.arange(1000)
+        y = np.random.normal(size=(3, 1000))
+
+        for i in range(3):
+            self.img2_input_histo.plot(x, y[i], pen=(i, 3))  ## setting pen=(i,3) automaticaly creates three different-colored pens
+
     def setupImagesView(self):
         """
         Adjust the shape and scales of the widgets
