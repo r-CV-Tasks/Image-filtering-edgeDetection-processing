@@ -47,7 +47,7 @@ class ImageProcessor(m.Ui_MainWindow):
         # No Noisy Image Array yet
         self.currentNoiseImage = None
 
-        # Combo Lists
+        # Combo Listss
         self.updateCombos = [self.combo_noise, self.combo_filter, self.combo_edges]
 
         # Setup Combo Connections
