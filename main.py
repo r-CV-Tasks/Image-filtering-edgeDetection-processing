@@ -36,9 +36,9 @@ class ImageProcessor(m.Ui_MainWindow):
         # self.loadButtons = [self.actionImage_1, self.actionImage_2]
 
         # Images Lists
-        self.inputImages = [self.img1_original]
+        self.inputImages = [self.img1_input, self.img2_input]
         self.outputImages = [self.img1_noisy, self.img1_filtered, self.img1_edged]
-        self.imageWidgets = [self.img1_original, self.img1_noisy, self.img1_filtered, self.img1_edged]
+        self.imageWidgets = [self.img1_input, self.img1_noisy, self.img1_filtered, self.img1_edged]
 
         self.imagesModels = [..., ...]
         self.heights = [..., ...]
@@ -56,7 +56,7 @@ class ImageProcessor(m.Ui_MainWindow):
         self.combo_edges.activated.connect(lambda: self.updateCombosChanged(2))
 
         # Setup Load Button Connection
-        self.btn_load.clicked.connect(lambda: self.load_file(0))
+        self.btn_load_1.clicked.connect(lambda: self.load_file(0))
 
         self.setupImagesView()
 
@@ -101,8 +101,8 @@ class ImageProcessor(m.Ui_MainWindow):
                 self.updateCombos[imgID+1].setEnabled(True)
                 self.updateCombos[imgID+2].setEnabled(True)
 
-                self.label_imgName.setText(imgName)
-                self.label_imgSize.setText(f"{image.shape[0]}x{image.shape[1]}")
+                self.label_imgName_1.setText(imgName)
+                self.label_imgSize_1.setText(f"{image.shape[0]}x{image.shape[1]}")
 
                 logger.info(f"Added Image{imgID + 1}: {imgName} successfully")
             else:
