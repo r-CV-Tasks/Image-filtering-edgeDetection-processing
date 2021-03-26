@@ -18,43 +18,11 @@ class ImageModel():
         self.imgByte = cv2.imread(self.imgPath, flags=cv2.IMREAD_GRAYSCALE).T
         self.imgShape = self.imgByte.shape
         self.dft = np.fft.fft2(self.imgByte)
-        self.real = np.real(self.dft)
-        self.imaginary = np.imag(self.dft)
-        self.magnitude = np.abs(self.dft)
-        self.phase = np.angle(self.dft)
-        self.uniformMagnitude = np.ones(self.imgByte.shape)
-        self.uniformPhase = np.zeros(self.imgByte.shape)
 
         # Noisy images
         self.uniform_noise = self.add_noise("uniform")
         self.gaussian_noise = self.add_noise("gaussian")
         self.saltpepper_noise = self.add_noise("salt & pepper")
-
-
-    def mix(self, imageToBeMixed: 'ImageModel', magnitudeOrRealRatio: float, phaesOrImaginaryRatio: float):
-        """
-        a function that takes ImageModel object mag ratio, phase ration and
-        return the magnitude of ifft of the mix
-        return type ---> 2D numpy array
-        """
-        w1 = magnitudeOrRealRatio
-        w2 = phaesOrImaginaryRatio
-
-        # mix2 = (w1 * R1 + (1 - w1) * R2) + j * ((1 - w2) * I1 + w2 * I2)
-        print("Mixing Real and Imaginary")
-        R1 = self.real
-        R2 = imageToBeMixed.real
-
-        I1 = self.imaginary
-        I2 = imageToBeMixed.imaginary
-
-        realMix = w1*R1 + (1-w1)*R2
-        imaginaryMix = (1-w2)*I1 + w2*I2
-
-        combined = realMix + imaginaryMix * 1j
-        mixInverse = np.real(np.fft.ifft2(combined))
-
-        return abs(mixInverse)
 
 
     def add_noise(self, type: str):
@@ -138,3 +106,60 @@ class ImageModel():
             pass
 
         return edged_image
+
+    def get_histogram(self, type: str):
+        """
+
+        :param type:
+        :return:
+        """
+
+        histo_plot = None
+
+        # This will be deleted
+        histo_plot = self.imgByte
+
+        if type == "original":
+            # TODO: Get Original Histogram of self.imgBye
+            pass
+
+        if type == "equalized":
+            # TODO: Get Equalized Histogram of self.imgByte
+            pass
+
+        elif type == "normalized":
+            # TODO: Get Normalized Histogram of self.imgByte
+            pass
+
+        return histo_plot
+
+    def thresholding(self, type: str):
+        """
+
+        :param type:
+        :return:
+        """
+
+        threshold_image = None
+        if type == "local":
+            # TODO: Apply Local Thresholding on self.imgByte
+            pass
+
+        elif type == "global":
+            # TODO: Apply Global Thresholding on self.imgByte
+            pass
+
+        return threshold_image
+
+
+    def to_gray(self):
+        """
+
+        :return:
+        """
+
+        gray_image = None
+
+        # TODO: Apply RGB to Gray Scale Conversion
+
+        return gray_image

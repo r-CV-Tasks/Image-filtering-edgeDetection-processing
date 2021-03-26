@@ -649,6 +649,11 @@
               </item>
               <item>
                <property name="text">
+                <string>Original Histogram</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
                 <string>Equalized Histogram</string>
                </property>
               </item>
@@ -766,7 +771,7 @@
               </property>
               <layout class="QGridLayout" name="gridLayout_5">
                <item row="0" column="0">
-                <widget class="ImageView" name="img2_input_histo" native="true">
+                <widget class="PlotWidget" name="img2_input_histo" native="true">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                    <horstretch>0</horstretch>
@@ -797,7 +802,7 @@
               </property>
               <layout class="QGridLayout" name="gridLayout_11">
                <item row="0" column="0">
-                <widget class="ImageView" name="img2_output_histo" native="true">
+                <widget class="PlotWidget" name="img2_output_histo" native="true">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                    <horstretch>0</horstretch>
@@ -895,7 +900,7 @@
               <item>
                <spacer name="horizontalSpacer_5">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -959,7 +964,7 @@
               <item>
                <spacer name="horizontalSpacer_6">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -1158,6 +1163,9 @@
             </item>
             <item>
              <widget class="QPushButton" name="btn_hybrid">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
                 <horstretch>0</horstretch>
@@ -1378,6 +1386,12 @@
  <customwidgets>
   <customwidget>
    <class>ImageView</class>
+   <extends>QWidget</extends>
+   <header>pyqtgraph.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PlotWidget</class>
    <extends>QWidget</extends>
    <header>pyqtgraph.h</header>
    <container>1</container>
