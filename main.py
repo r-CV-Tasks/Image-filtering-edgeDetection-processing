@@ -228,6 +228,11 @@ class ImageProcessor(m.Ui_MainWindow):
                     self.currentNoiseImage = self.imagesModels[0].add_noise(type="salt & pepper", snr=noise_snr)
                     self.display_image(data=self.currentNoiseImage, widget=self.filtersImages[combo_id])
 
+                # TODO Apply filter when changing the SNR of the noise if it is selected
+                # Check if there is selected filter
+                if self.currentNoiseImage is not None:
+                    selected_component = self.updateCombos[1].currentText().lower()
+
             # Filters Options
             if combo_id == 1:
                 self.mask_size_1.setEnabled(True)
