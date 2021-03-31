@@ -22,7 +22,11 @@ def ZeroPadImage(source: np.ndarray, f: int) -> np.ndarray:
 
     # Apply Zero Padding
     out = np.pad(src, (p, p), 'constant', constant_values=0)
-    return out[:, :, p:-p]
+
+    if len(src.shape) == 3:
+        return out[:, :, p:-p]
+    elif len(src.shape) == 2:
+        return out
 
 
 def CreateSquareKernel(size: int, mode: str, sigma: [int, float] = None) -> np.ndarray:
