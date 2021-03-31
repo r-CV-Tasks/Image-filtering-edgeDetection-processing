@@ -115,30 +115,26 @@ def MedianFilter(source: np.ndarray, shape: int) -> np.ndarray:
     :return: Filtered Image
     """
     src = np.copy(source)
-    ch = []
 
     # Check image for right dimensions
     if len(src.shape) == 2:
         src = np.expand_dims(src, -1)
 
+    # Create an Array of the same size as input image
+    result = np.zeros(src.shape)
+
     # Pad the Image to obtain a Same Convolution
     src = ZeroPadImage(src, shape)
 
     # Assuming Channels Last Convention
-    for c in range(src.shape[-1]):
+    for c in range(result.shape[-1]):
         # Looping the Image in the X and Y directions
         # Extracting the Kernel
         # Calculating the Median of the Kernel
-        channel = []
-        for i in range(src.shape[0]):
-            for j in range(src.shape[1]):
+        for i in range(result.shape[0]):
+            for j in range(result.shape[1]):
                 kernel = src[i: i + shape, j: j + shape, c]
                 if kernel.shape == (shape, shape):
-                    channel.append(int(np.median(kernel)))
+                    result[i, j, c] = int(np.median(kernel))
 
-        # Reshaping the convolution output with the image Dimensions
-        length = int(np.sqrt(len(channel)))
-        channel = np.array(channel, dtype=np.int).reshape((length, length))
-        ch.append(channel)
-
-    return np.stack(ch, -1).astype('uint8')
+    return result
