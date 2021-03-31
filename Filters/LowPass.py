@@ -117,6 +117,10 @@ def MedianFilter(source: np.ndarray, shape: int) -> np.ndarray:
     src = np.copy(source)
     ch = []
 
+    # Check image for right dimensions
+    if len(src.shape) == 2:
+        src = np.expand_dims(src, -1)
+
     # Pad the Image to obtain a Same Convolution
     src = ZeroPadImage(src, shape)
 
