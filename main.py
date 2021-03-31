@@ -59,8 +59,8 @@ class ImageProcessor(m.Ui_MainWindow):
                              3: [self.label_imgSize_3], 4: [self.label_imgSize_4]}
 
         # list contains the last pressed values
-        self.sliderValuesClicked = {0: ..., 1: ..., 2: ..., 3: ..., 4: ...}
-        self.sliders = [self.snr_slider_1, self.sigma_slider_1, self.snr_slider_2, self.mask_size_1]
+        self.sliderValuesClicked = {0: ..., 1: ..., 2: ..., 3: ...}
+        self.sliders = [self.snr_slider_1, self.sigma_slider_1, self.sigma_slider_2, self.mask_size_1]
 
 
         # Sliders Connections
@@ -299,8 +299,7 @@ class ImageProcessor(m.Ui_MainWindow):
         :return: none
         """
         self.sliderValuesClicked[indx] = val/10
-
-        print(f"Slider {indx}: value: {val/10}")
+        self.updateCombosChanged(tab_id=0, combo_id=0)
 
 
     def displayImage(self, data, widget):
@@ -314,6 +313,19 @@ class ImageProcessor(m.Ui_MainWindow):
         widget.view.setRange(xRange=[0, self.imagesModels[0].imgShape[0]], yRange=[0, self.imagesModels[0].imgShape[1]],
                              padding=0)
         widget.ui.roiPlot.hide()
+
+    def mapRanges(self, inputValue: float, inMin: float, inMax: float, outMin: float, outMax: float):
+        """
+        Map a given value from range 1 -> range 2
+        :param inputValue: The value you want to map
+        :param inMin: Minimum Value of Range 1
+        :param inMax: Maximum Value of Range 1
+        :param outMin: Minimum Value of Range 2
+        :param outMax: Maximum Value of Range 2
+        :return: The new Value in Range 2
+        """
+        slope = (outMax-outMin) / (inMax-inMin)
+        return outMin + slope*(inputValue-inMin)
 
     @staticmethod
     def showMessage(header, message, button, icon):
