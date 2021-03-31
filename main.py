@@ -2,10 +2,12 @@
 import sys
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtCore import QThread, pyqtSignal
 from UI import mainGUI as m
 import cv2
 import numpy as np
 from imageModel import ImageModel
+from threading import Thread
 
 # importing module
 import logging
@@ -20,6 +22,23 @@ logging.basicConfig(level=logging.DEBUG,
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+
+class LoaderThread(QThread):
+    signal = pyqtSignal('PyQt_PyObject')
+
+    def __init__(self):
+        super(LoaderThread, self).__init__()
+        self.filepath = ...
+        self.file = ...
+
+    def run(self):
+        # self.file = loadAudioFile(self.filepath)
+        self.signal.emit(self.file)
+
+    # TODO Apply QThread for testing Median Filter
+    # self.loadThread.filepath = self.filename
+    # self.loadThread.start()
+    # self.loadThread.signal.connect(self.loadFileConfiguration)
 
 class ImageProcessor(m.Ui_MainWindow):
     """
@@ -79,11 +98,18 @@ class ImageProcessor(m.Ui_MainWindow):
         self.btn_load_3.clicked.connect(lambda: self.load_file(self.tab_index))
         self.btn_load_4.clicked.connect(lambda: self.load_file(self.tab_index + 1))
 
-        # Setup Combo Connections
+        # # Setup Combo Connections
         self.combo_noise.activated.connect(lambda: self.combo_box_changed(self.tab_index, 0))
         self.combo_filter.activated.connect(lambda: self.combo_box_changed(self.tab_index, 1))
         self.combo_edges.activated.connect(lambda: self.combo_box_changed(self.tab_index, 2))
         self.combo_histogram.activated.connect(lambda: self.combo_box_changed(self.tab_index + 1, 3))
+
+        # # Test Threads
+        # # Setup Combo Connections
+        # self.combo_noise.activated.connect(lambda: self.handle_combo(self.tab_index, 0))
+        # self.combo_filter.activated.connect(lambda: self.handle_combo(self.tab_index, 1))
+        # self.combo_edges.activated.connect(lambda: self.handle_combo(self.tab_index, 2))
+        # self.combo_histogram.activated.connect(lambda: self.handle_combo(self.tab_index + 1, 3))
 
         self.setup_images_view()
 
@@ -190,6 +216,13 @@ class ImageProcessor(m.Ui_MainWindow):
             # Clear Images Widgets
             for i in range(len(self.filtersImages)):
                 self.filtersImages[i].clear()
+
+    def handle_combo(self, tab_id, combo_id):
+        # Start a new thread for this Client
+        # Using Multiple threads to allow Multi-client connections.
+        # Each thread handles one client in a separate function
+        thread = Thread(target=self.combo_box_changed, args=(tab_id, combo_id))
+        thread.start()
 
     def combo_box_changed(self, tab_id, combo_id):
         """
