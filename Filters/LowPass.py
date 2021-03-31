@@ -18,11 +18,11 @@ def ZeroPadImage(source: np.ndarray, f: int) -> np.ndarray:
     src = np.copy(source)
 
     # Calculate Padding size
-    p = (f - 1)/2
+    p = int((f - 1)/2)
 
     # Apply Zero Padding
     out = np.pad(src, (p, p), 'constant', constant_values=0)
-    return out
+    return out[:, :, p:-p]
 
 
 def CreateSquareKernel(size: int, mode: str, sigma: [int, float] = None) -> np.ndarray:
@@ -115,7 +115,7 @@ def MedianFilter(source: np.ndarray, shape: int) -> np.ndarray:
     j = 0
     r, g, b = [], [], []
     ch = [r, g, b]
-    img_shape = src.shape
+    out = []
 
     # Pad the Image to obtain a Same Convolution
     src = ZeroPadImage(src, shape)
@@ -126,11 +126,15 @@ def MedianFilter(source: np.ndarray, shape: int) -> np.ndarray:
     for _ in range(0, source.shape[0]):
         for _ in range(0, source.shape[1]):
             for c in range(0, source.shape[2]):
-                kernel = src[i: i+3, j: j+3, c]
-                ch[c].append(np.median(kernel))
+                kernel = src[i: i+shape, j: j+shape, c]
+                ch[c].append(int(np.median(kernel)))
             j += 1
         i += 1
+        j = 0
 
     for c in ch:
-        pass
-    pass
+        length = int(np.sqrt(len(c)))
+        c = np.array(c, dtype=np.int).reshape((length, length))
+        out.append(c)
+
+    return np.stack(out, -1).astype('uint8')
