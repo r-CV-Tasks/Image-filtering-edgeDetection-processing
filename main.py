@@ -32,6 +32,11 @@ class ImageProcessor(m.Ui_MainWindow):
         """
         super(ImageProcessor, self).setupUi(starterWindow)
 
+        # Setup Tab Widget Connections
+        self.tabWidget_process.setCurrentIndex(0)
+        self.tab_index = self.tabWidget_process.currentIndex()
+        self.tabWidget_process.currentChanged.connect(self.tabChanged)
+
         # Images Lists
         self.inputImages = [self.img1_input, self.img2_input, self.imgA_input, self.imgB_input]
         self.filtersImages = [self.img1_noisy, self.img1_filtered, self.img1_edged]
@@ -47,8 +52,18 @@ class ImageProcessor(m.Ui_MainWindow):
         self.weights = [..., ..., ..., ...]
 
         # Images Labels and Sizes
-        self.imagesLabels = [self.label_imgName_1, self.label_imgName_2, self.label_imgName_3, self.label_imgName_4]
-        self.imagesSizes = [self.label_imgSize_1, self.label_imgSize_2, self.label_imgSize_3, self.label_imgSize_4]
+        self.imagesLabels = {1: [self.label_imgName_1], 2: [self.label_imgName_2],
+                             3: [self.label_imgName_3], 4: [self.label_imgName_4]}
+
+        self.imagesSizes = {1: [self.label_imgSize_1], 2: [self.label_imgSize_2],
+                             3: [self.label_imgSize_3], 4: [self.label_imgSize_4]}
+
+        # self.imagesLabels = [self.label_imgName_1, self.label_imgName_2, self.label_imgName_3, self.label_imgName_4]
+        # self.imagesSizes = [self.label_imgSize_1, self.label_imgSize_2, self.label_imgSize_3, self.label_imgSize_4]
+
+        # list contains the last pressed values
+        self.sliderValuesClicked = {0: ..., 1: ..., 2: ..., 3: ..., 4: ...}
+        self.sliders = [self.snr_slider_1, self.sigma_slider_1, self.snr_slider_2, self.mask_size_1]
 
 
         # No Noisy Image Array yet
@@ -58,16 +73,21 @@ class ImageProcessor(m.Ui_MainWindow):
         self.updateCombos = [self.combo_noise, self.combo_filter, self.combo_edges]
 
         # Setup Load Buttons Connections
-        self.btn_load_1.clicked.connect(lambda: self.load_file(0))
-        self.btn_load_2.clicked.connect(lambda: self.load_file(1))
-        self.btn_load_3.clicked.connect(lambda: self.load_file(2))
-        self.btn_load_4.clicked.connect(lambda: self.load_file(3))
+        self.btn_load_1.clicked.connect(lambda: self.load_file(self.tab_index))
+        self.btn_load_2.clicked.connect(lambda: self.load_file(self.tab_index))
+        self.btn_load_3.clicked.connect(lambda: self.load_file(self.tab_index))
+        self.btn_load_4.clicked.connect(lambda: self.load_file(self.tab_index+1))
 
         # Setup Combo Connections
-        self.combo_noise.activated.connect(lambda: self.updateCombosChanged(0))
-        self.combo_filter.activated.connect(lambda: self.updateCombosChanged(1))
-        self.combo_edges.activated.connect(lambda: self.updateCombosChanged(2))
-        self.combo_histogram.activated.connect(lambda: self.updateCombosChanged(3))
+        self.combo_noise.activated.connect(lambda: self.updateCombosChanged(self.tab_index, 0))
+        self.combo_filter.activated.connect(lambda: self.updateCombosChanged(self.tab_index, 1))
+        self.combo_edges.activated.connect(lambda: self.updateCombosChanged(self.tab_index, 2))
+        self.combo_histogram.activated.connect(lambda: self.updateCombosChanged(self.tab_index+1, 3))
+
+        # Sliders Connections
+        for slider in self.sliders:
+            slider.id = self.sliders.index(slider)
+            slider.signal.connect(self.sliderChanged)
 
         self.setupImagesView()
 
@@ -79,7 +99,13 @@ class ImageProcessor(m.Ui_MainWindow):
         y = np.random.normal(size=(3, 1000))
 
         for i in range(3):
-            self.img2_input_histo.plot(x, y[i], pen=(i, 3))  ## setting pen=(i,3) automaticaly creates three different-colored pens
+            # setting pen=(i,3) automatically creates three different-colored pens
+            self.img2_input_histo.plot(x, y[i], pen=(i, 3))
+
+
+    def tabChanged(self):
+        self.tab_index = self.tabWidget_process.currentIndex()
+        print(self.tab_index)
 
     def setupImagesView(self):
         """
@@ -117,21 +143,18 @@ class ImageProcessor(m.Ui_MainWindow):
 
             # When Images in Tab1, Tab2 or Image A in Tab 3
             if imgID != 3:
+                # Reset Results
+                self.clearResults(tab_id=imgID)
+
                 # Create and Display Original Image
                 self.displayImage(self.imagesModels[imgID].imgByte, self.inputImages[imgID])
 
-                # Enable Combo Boxes
-                self.updateCombos[imgID].setEnabled(True)
-                self.updateCombos[imgID + 1].setEnabled(True)
-                self.updateCombos[imgID + 2].setEnabled(True)
-
-                # Enable SNR Text
-                self.snr_ratio.setEnabled(True)
-                self.mask_size.setEnabled(True)
+                # Enable the combo box and parameters input
+                self.enableGUI(tab_id=imgID)
 
                 # Set Image Name and Size
-                self.imagesLabels[imgID].setText(imgName)
-                self.imagesSizes[imgID].setText(f"{image.shape[0]}x{image.shape[1]}")
+                self.imagesLabels[imgID+1][0].setText(imgName)
+                self.imagesSizes[imgID+1][0].setText(f"{image.shape[0]}x{image.shape[1]}")
 
                 logger.info(f"Added Image{imgID + 1}: {imgName} successfully")
 
@@ -143,78 +166,138 @@ class ImageProcessor(m.Ui_MainWindow):
                     logger.warning("Warning!!. Images sizes must be the same, please upload another image")
                 else:
                     self.displayImage(self.imagesModels[imgID].imgByte, self.inputImages[imgID])
+                    # Set Image Name and Size
+                    self.imagesLabels[imgID + 1][0].setText(imgName)
+                    self.imagesSizes[imgID + 1][0].setText(f"{image.shape[0]}x{image.shape[1]}")
                     self.btn_hybrid.setEnabled(True)
                     logger.info(f"Added Image{imgID + 1}: {imgName} successfully")
 
-    def updateCombosChanged(self, combo_id):
-        selectedComponent = self.updateCombos[combo_id].currentText().lower()
 
-        # Noise Options
-        if combo_id == 0:
-            if selectedComponent == "uniform noise":
-                self.displayImage(self.imagesModels[0].uniform_noise, self.filtersImages[combo_id])
-                self.currentNoiseImage = self.imagesModels[0].uniform_noise
-            elif selectedComponent == "gaussian noise":
-                self.displayImage(self.imagesModels[0].gaussian_noise, self.filtersImages[combo_id])
-                self.currentNoiseImage = self.imagesModels[0].gaussian_noise
-            elif selectedComponent == "salt & pepper noise":
-                self.displayImage(self.imagesModels[0].saltpepper_noise, self.filtersImages[combo_id])
-                self.currentNoiseImage = self.imagesModels[0].saltpepper_noise
+    def enableGUI(self, tab_id):
+        """
 
-        # Filters Options
-        if combo_id == 1:
-            if selectedComponent == "average filter":
-                filtered_image = self.imagesModels[0].apply_filter(data=self.currentNoiseImage, type="average")
-                self.displayImage(filtered_image, self.filtersImages[combo_id])
-            elif selectedComponent == "gaussian filter":
-                filtered_image = self.imagesModels[0].apply_filter(data=self.currentNoiseImage, type="gaussian")
-                self.displayImage(filtered_image, self.filtersImages[combo_id])
-            elif selectedComponent == "median filter":
-                filtered_image = self.imagesModels[0].apply_filter(data=self.currentNoiseImage, type="median")
-                self.displayImage(filtered_image, self.filtersImages[combo_id])
+        :param tab_id:
+        :return:
+        """
+        if tab_id == 0:
+            for i in range(len(self.updateCombos)):
+                # Enable Combo Boxes
+                self.updateCombos[i].setEnabled(True)
 
-        # Edge Detection Options
-        if combo_id == 2:
-            if selectedComponent == "sobel mask":
-                edged_image = self.imagesModels[0].apply_edge_mask(type="sobel")
-                self.displayImage(edged_image, self.filtersImages[combo_id])
-            elif selectedComponent == "roberts mask":
-                edged_image = self.imagesModels[0].apply_edge_mask(type="roberts")
-                self.displayImage(edged_image, self.filtersImages[combo_id])
-            elif selectedComponent == "perwitt mask":
-                edged_image = self.imagesModels[0].apply_edge_mask(type="perwitt")
-                self.displayImage(edged_image, self.filtersImages[combo_id])
-            elif selectedComponent == "canny mask":
-                edged_image = self.imagesModels[0].apply_edge_mask(type="canny")
-                self.displayImage(edged_image, self.filtersImages[combo_id])
+                # Enable Filters Parameters
+                self.sliders[i].setEnabled(True)
 
-        # Histograms Options
-        if combo_id == 3:
-            if selectedComponent == "original histogram":
-                histo = self.imagesModels[1].get_histogram(type="original")
-                # self.displayImage(histo, self.img2_input_histo)
-                # TODO plot histogram and distribution curve
-            if selectedComponent == "equalized histogram":
-                histo = self.imagesModels[1].get_histogram(type="equalized")
-                # self.displayImage(histo, self.img2_output_histo)
-                # TODO plot histogram and distribution curve
-            elif selectedComponent == "normalized histogram":
-                histo = self.imagesModels[1].get_histogram(type="normalized")
-                # self.displayImage(histo, self.img2_output_histo)
+        elif tab_id == 1:
+            self.combo_histogram.setEnabled(True)
+        elif tab_id == 2:
+            if type(self.imagesModels[3]) != type(...):
+                self.btn_hybrid.setEnabled(True)
 
-            elif selectedComponent == "local thresholding":
-                local_threshold = self.imagesModels[1].thresholding(type="local")
-                self.displayImage(local_threshold, self.img2_output)
-            elif selectedComponent == "global thresholding":
-                global_threshold = self.imagesModels[1].thresholding(type="global")
-                self.displayImage(global_threshold, self.img2_output)
-            elif selectedComponent == "transform to gray":
-                gray_image = self.imagesModels[1].to_gray()
-                self.displayImage(gray_image, self.img2_output)
+    def clearResults(self, tab_id):
+        # Reset previous outputs
+        if tab_id == 0:
+            # Clear Images Widgets
+            for i in range(len(self.filtersImages)):
+                self.filtersImages[i].clear()
 
-                # TODO: Plot R, G and B Histograms separately
+            # Clear Text Labels
 
-        logger.info(f"Viewing {selectedComponent} Component Of Image{combo_id + 1}")
+
+
+    def updateCombosChanged(self, tab_id, combo_id):
+        """
+
+        :param tab_id:
+        :param combo_id:
+        :return:
+        """
+        # If 1st tab is selected
+        if tab_id == 0:
+            selectedComponent = self.updateCombos[combo_id].currentText().lower()
+
+            # Noise Options
+            if combo_id == 0:
+                if selectedComponent == "uniform noise":
+                    self.displayImage(self.imagesModels[0].uniform_noise, self.filtersImages[combo_id])
+                    self.currentNoiseImage = self.imagesModels[0].uniform_noise
+                elif selectedComponent == "gaussian noise":
+                    self.displayImage(self.imagesModels[0].gaussian_noise, self.filtersImages[combo_id])
+                    self.currentNoiseImage = self.imagesModels[0].gaussian_noise
+                elif selectedComponent == "salt & pepper noise":
+                    self.displayImage(self.imagesModels[0].saltpepper_noise, self.filtersImages[combo_id])
+                    self.currentNoiseImage = self.imagesModels[0].saltpepper_noise
+
+            # Filters Options
+            if combo_id == 1:
+                if selectedComponent == "average filter":
+                    filtered_image = self.imagesModels[0].apply_filter(data=self.currentNoiseImage, type="average")
+                    self.displayImage(filtered_image, self.filtersImages[combo_id])
+                elif selectedComponent == "gaussian filter":
+                    filtered_image = self.imagesModels[0].apply_filter(data=self.currentNoiseImage, type="gaussian")
+                    self.displayImage(filtered_image, self.filtersImages[combo_id])
+                elif selectedComponent == "median filter":
+                    filtered_image = self.imagesModels[0].apply_filter(data=self.currentNoiseImage, type="median")
+                    self.displayImage(filtered_image, self.filtersImages[combo_id])
+
+            # Edge Detection Options
+            if combo_id == 2:
+                if selectedComponent == "sobel mask":
+                    edged_image = self.imagesModels[0].apply_edge_mask(type="sobel")
+                    self.displayImage(edged_image, self.filtersImages[combo_id])
+                elif selectedComponent == "roberts mask":
+                    edged_image = self.imagesModels[0].apply_edge_mask(type="roberts")
+                    self.displayImage(edged_image, self.filtersImages[combo_id])
+                elif selectedComponent == "prewitt mask":
+                    edged_image = self.imagesModels[0].apply_edge_mask(type="perwitt")
+                    self.displayImage(edged_image, self.filtersImages[combo_id])
+                elif selectedComponent == "canny mask":
+                    edged_image = self.imagesModels[0].apply_edge_mask(type="canny")
+                    self.displayImage(edged_image, self.filtersImages[combo_id])
+
+            logger.info(f"Viewing {selectedComponent} Component Of Image{combo_id + 1}")
+
+        # If 2nd tab is selected
+        elif tab_id == 1:
+            selectedComponent = self.combo_histogram.currentText().lower()
+            # Histograms Options
+            if combo_id == 3:
+                if selectedComponent == "original histogram":
+                    histo = self.imagesModels[1].get_histogram(type="original")
+                    # self.displayImage(histo, self.img2_input_histo)
+                    # TODO plot histogram and distribution curve
+                if selectedComponent == "equalized histogram":
+                    histo = self.imagesModels[1].get_histogram(type="equalized")
+                    # self.displayImage(histo, self.img2_output_histo)
+                    # TODO plot histogram and distribution curve
+                elif selectedComponent == "normalized histogram":
+                    histo = self.imagesModels[1].get_histogram(type="normalized")
+                    # self.displayImage(histo, self.img2_output_histo)
+
+                elif selectedComponent == "local thresholding":
+                    local_threshold = self.imagesModels[1].thresholding(type="local")
+                    self.displayImage(local_threshold, self.img2_output)
+                elif selectedComponent == "global thresholding":
+                    global_threshold = self.imagesModels[1].thresholding(type="global")
+                    self.displayImage(global_threshold, self.img2_output)
+                elif selectedComponent == "transform to gray":
+                    gray_image = self.imagesModels[1].to_gray()
+                    self.displayImage(gray_image, self.img2_output)
+
+                    # TODO: Plot R, G and B Histograms separately
+
+            logger.info(f"Viewing {selectedComponent} Component Of Image{combo_id + 1}")
+
+    def sliderChanged(self, indx, val):
+        """
+        detects the changes in the sliders and plot these changes using the indx to the band given by th slider
+        and the slider value which is the gain
+        :param indx: int
+        :param val: int
+        :return: none
+        """
+        print(f"Slider {indx}: value: {val}")
+        self.sliderValuesClicked[indx] = val/10
+
 
     def displayImage(self, data, widget):
         """
