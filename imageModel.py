@@ -39,7 +39,7 @@ class ImageModel():
         return noisy_image
 
 
-    def apply_filter(self, data: np.ndarray, type: str, shape: int, sigma: int = 0) -> np.ndarray:
+    def apply_filter(self, data: np.ndarray, type: str, shape: int, sigma: [int, float] = 0) -> np.ndarray:
         """
         This function adds different types of filters to the given image
         :param data: The given image numpy array
