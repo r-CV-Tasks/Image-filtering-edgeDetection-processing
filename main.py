@@ -1,5 +1,5 @@
 # Importing Packages
-import os, sys
+import sys
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QMessageBox
 from UI import mainGUI as m
@@ -25,23 +25,23 @@ class ImageProcessor(m.Ui_MainWindow):
     """
     Main Class of the program GUI
     """
-    def __init__(self, starterWindow):
+
+    def __init__(self, starter_window):
         """
         Main loop of the UI
-        :param mainWindow: QMainWindow Object
+        :param starter_window: QMainWindow Object
         """
-        super(ImageProcessor, self).setupUi(starterWindow)
+        super(ImageProcessor, self).setupUi(starter_window)
 
         # Setup Tab Widget Connections
         self.tabWidget_process.setCurrentIndex(0)
         self.tab_index = self.tabWidget_process.currentIndex()
-        self.tabWidget_process.currentChanged.connect(self.tabChanged)
+        self.tabWidget_process.currentChanged.connect(self.tab_changed)
 
         # Images Lists
         self.inputImages = [self.img1_input, self.img2_input, self.imgA_input, self.imgB_input]
         self.filtersImages = [self.img1_noisy, self.img1_filtered, self.img1_edged]
         self.histoImages = [self.img2_input_histo, self.img2_output_histo, self.img2_output]
-
 
         self.imageWidgets = [self.img1_input, self.img1_noisy, self.img1_filtered, self.img1_edged,
                              self.img2_input, self.img2_output,
@@ -56,17 +56,16 @@ class ImageProcessor(m.Ui_MainWindow):
                              3: [self.label_imgName_3], 4: [self.label_imgName_4]}
 
         self.imagesSizes = {1: [self.label_imgSize_1], 2: [self.label_imgSize_2],
-                             3: [self.label_imgSize_3], 4: [self.label_imgSize_4]}
+                            3: [self.label_imgSize_3], 4: [self.label_imgSize_4]}
 
         # list contains the last pressed values
         self.sliderValuesClicked = {0: ..., 1: ..., 2: ..., 3: ...}
         self.sliders = [self.snr_slider_1, self.sigma_slider_1, self.sigma_slider_2, self.mask_size_1]
 
-
         # Sliders Connections
         for slider in self.sliders:
             slider.id = self.sliders.index(slider)
-            slider.signal.connect(self.sliderChanged)
+            slider.signal.connect(self.slider_changed)
 
         # No Noisy Image Array yet
         self.currentNoiseImage = None
@@ -78,16 +77,15 @@ class ImageProcessor(m.Ui_MainWindow):
         self.btn_load_1.clicked.connect(lambda: self.load_file(self.tab_index))
         self.btn_load_2.clicked.connect(lambda: self.load_file(self.tab_index))
         self.btn_load_3.clicked.connect(lambda: self.load_file(self.tab_index))
-        self.btn_load_4.clicked.connect(lambda: self.load_file(self.tab_index+1))
+        self.btn_load_4.clicked.connect(lambda: self.load_file(self.tab_index + 1))
 
         # Setup Combo Connections
-        self.combo_noise.activated.connect(lambda: self.updateCombosChanged(self.tab_index, 0))
-        self.combo_filter.activated.connect(lambda: self.updateCombosChanged(self.tab_index, 1))
-        self.combo_edges.activated.connect(lambda: self.updateCombosChanged(self.tab_index, 2))
-        self.combo_histogram.activated.connect(lambda: self.updateCombosChanged(self.tab_index+1, 3))
+        self.combo_noise.activated.connect(lambda: self.combo_box_changed(self.tab_index, 0))
+        self.combo_filter.activated.connect(lambda: self.combo_box_changed(self.tab_index, 1))
+        self.combo_edges.activated.connect(lambda: self.combo_box_changed(self.tab_index, 2))
+        self.combo_histogram.activated.connect(lambda: self.combo_box_changed(self.tab_index + 1, 3))
 
-
-        self.setupImagesView()
+        self.setup_images_view()
 
         self.img2_input_histo.plotItem.setTitle("Histogram")
         self.img2_input_histo.plotItem.showGrid(True, True, alpha=0.8)
@@ -100,12 +98,11 @@ class ImageProcessor(m.Ui_MainWindow):
             # setting pen=(i,3) automatically creates three different-colored pens
             self.img2_input_histo.plot(x, y[i], pen=(i, 3))
 
-
-    def tabChanged(self):
+    def tab_changed(self):
         self.tab_index = self.tabWidget_process.currentIndex()
         print(self.tab_index)
 
-    def setupImagesView(self):
+    def setup_images_view(self):
         """
         Adjust the shape and scales of the widgets
         Remove unnecessary options
@@ -119,10 +116,10 @@ class ImageProcessor(m.Ui_MainWindow):
             widget.getView().setAspectLocked(False)
             widget.view.setAspectLocked(False)
 
-    def load_file(self, imgID):
+    def load_file(self, img_id):
         """
         Load the File from User
-        :param imgID: 0, 1, 2 or 3
+        :param img_id: 0, 1, 2 or 3
         :return:
         """
 
@@ -131,50 +128,49 @@ class ImageProcessor(m.Ui_MainWindow):
         repo_path = "./src/Images"
         self.filename, self.format = QtWidgets.QFileDialog.getOpenFileName(None, "Load Image", repo_path,
                                                                            "*.jpg;;" "*.jpeg;;" "*.png;;")
-        imgName = self.filename.split('/')[-1]
+        img_name = self.filename.split('/')[-1]
         if self.filename == "":
             pass
         else:
             image = cv2.imread(self.filename, flags=cv2.IMREAD_GRAYSCALE).T
-            self.heights[imgID], self.weights[imgID] = image.shape
-            self.imagesModels[imgID] = ImageModel(self.filename)
+            self.heights[img_id], self.weights[img_id] = image.shape
+            self.imagesModels[img_id] = ImageModel(self.filename)
 
             # When Images in Tab1, Tab2 or Image A in Tab 3
-            if imgID != 3:
+            if img_id != 3:
                 # Reset Results
-                self.clearResults(tab_id=imgID)
+                self.clear_results(tab_id=img_id)
 
                 # Create and Display Original Image
-                self.displayImage(self.imagesModels[imgID].imgByte, self.inputImages[imgID])
+                self.display_image(self.imagesModels[img_id].imgByte, self.inputImages[img_id])
 
                 # Enable the combo box and parameters input
-                self.enableGUI(tab_id=imgID)
+                self.enable_gui(tab_id=img_id)
 
                 # Set Image Name and Size
-                self.imagesLabels[imgID+1][0].setText(imgName)
-                self.imagesSizes[imgID+1][0].setText(f"{image.shape[0]}x{image.shape[1]}")
+                self.imagesLabels[img_id + 1][0].setText(img_name)
+                self.imagesSizes[img_id + 1][0].setText(f"{image.shape[0]}x{image.shape[1]}")
 
-                logger.info(f"Added Image{imgID + 1}: {imgName} successfully")
+                logger.info(f"Added Image{img_id + 1}: {img_name} successfully")
 
             # When Loading Image B in Tab 3
             else:
                 if self.heights[3] != self.heights[2] or self.weights[3] != self.weights[2]:
-                    self.showMessage("Warning!!", "Images sizes must be the same, please upload another image",
-                                     QMessageBox.Ok, QMessageBox.Warning)
+                    self.show_message("Warning!!", "Images sizes must be the same, please upload another image",
+                                      QMessageBox.Ok, QMessageBox.Warning)
                     logger.warning("Warning!!. Images sizes must be the same, please upload another image")
                 else:
-                    self.displayImage(self.imagesModels[imgID].imgByte, self.inputImages[imgID])
+                    self.display_image(self.imagesModels[img_id].imgByte, self.inputImages[img_id])
                     # Set Image Name and Size
-                    self.imagesLabels[imgID + 1][0].setText(imgName)
-                    self.imagesSizes[imgID + 1][0].setText(f"{image.shape[0]}x{image.shape[1]}")
+                    self.imagesLabels[img_id + 1][0].setText(img_name)
+                    self.imagesSizes[img_id + 1][0].setText(f"{image.shape[0]}x{image.shape[1]}")
                     self.btn_hybrid.setEnabled(True)
-                    logger.info(f"Added Image{imgID + 1}: {imgName} successfully")
+                    logger.info(f"Added Image{img_id + 1}: {img_name} successfully")
 
-
-    def enableGUI(self, tab_id):
+    def enable_gui(self, tab_id):
         """
-
-        :param tab_id:
+        This function enables the required elements in the gui
+        :param tab_id: if of the current tab
         :return:
         """
         if tab_id == 0:
@@ -191,18 +187,14 @@ class ImageProcessor(m.Ui_MainWindow):
             if type(self.imagesModels[3]) != type(...):
                 self.btn_hybrid.setEnabled(True)
 
-    def clearResults(self, tab_id):
+    def clear_results(self, tab_id):
         # Reset previous outputs
         if tab_id == 0:
             # Clear Images Widgets
             for i in range(len(self.filtersImages)):
                 self.filtersImages[i].clear()
 
-            # Clear Text Labels
-
-
-
-    def updateCombosChanged(self, tab_id, combo_id):
+    def combo_box_changed(self, tab_id, combo_id):
         """
 
         :param tab_id:
@@ -211,86 +203,94 @@ class ImageProcessor(m.Ui_MainWindow):
         """
         # If 1st tab is selected
         if tab_id == 0:
-            selectedComponent = self.updateCombos[combo_id].currentText().lower()
+            selected_component = self.updateCombos[combo_id].currentText().lower()
             noise_snr = self.snr_slider_1.value() / 10
-            noise_sigma = self.sigma_slider_1.value()
+            noise_sigma = self.sigma_slider_1.value()  # This value from 0 -> 4
+            noise_sigma = np.round(self.map_ranges(noise_sigma, 0, 4, 0, 255))  # This value from 0 -> 255
 
-            filter_sigma = self.sigma_slider_2.value() / 10
+            filter_sigma = self.sigma_slider_2.value()
+            filter_sigma = np.round(self.map_ranges(filter_sigma, 0, 4, 0, 255))
+
             mask_size = self.mask_size_1.value()
+            mask_size = int(np.round(self.map_ranges(mask_size, 1, 4, 3, 9)))
 
             # Noise Options
             if combo_id == 0:
-                if selectedComponent == "uniform noise":
+                if selected_component == "uniform noise":
                     self.currentNoiseImage = self.imagesModels[0].add_noise(type="uniform", snr=noise_snr)
-                    self.displayImage(data=self.currentNoiseImage, widget=self.filtersImages[combo_id])
-                elif selectedComponent == "gaussian noise":
-                    self.currentNoiseImage = self.imagesModels[0].add_noise(type="gaussian", snr=noise_snr, sigma=noise_sigma)
-                    self.displayImage(data=self.currentNoiseImage, widget=self.filtersImages[combo_id])
-                elif selectedComponent == "salt & pepper noise":
+                    self.display_image(data=self.currentNoiseImage, widget=self.filtersImages[combo_id])
+                elif selected_component == "gaussian noise":
+                    self.currentNoiseImage = self.imagesModels[0].add_noise(type="gaussian", snr=noise_snr,
+                                                                            sigma=noise_sigma)
+                    self.display_image(data=self.currentNoiseImage, widget=self.filtersImages[combo_id])
+                elif selected_component == "salt & pepper noise":
                     self.currentNoiseImage = self.imagesModels[0].add_noise(type="salt & pepper", snr=noise_snr)
-                    self.displayImage(data=self.currentNoiseImage, widget=self.filtersImages[combo_id])
+                    self.display_image(data=self.currentNoiseImage, widget=self.filtersImages[combo_id])
 
             # Filters Options
             if combo_id == 1:
-                if selectedComponent == "average filter":
-                    filtered_image = self.imagesModels[0].apply_filter(data=self.currentNoiseImage, type="average", shape=mask_size)
-                    self.displayImage(data=filtered_image, widget=self.filtersImages[combo_id])
-                elif selectedComponent == "gaussian filter":
-                    filtered_image = self.imagesModels[0].apply_filter(data=self.currentNoiseImage, type="gaussian", shape=mask_size, sigma=filter_sigma)
-                    self.displayImage(data=filtered_image, widget=self.filtersImages[combo_id])
-                elif selectedComponent == "median filter":
-                    filtered_image = self.imagesModels[0].apply_filter(data=self.currentNoiseImage, type="median", shape=mask_size)
-                    self.displayImage(data=filtered_image, widget=self.filtersImages[combo_id])
+                if selected_component == "average filter":
+                    filtered_image = self.imagesModels[0].apply_filter(data=self.currentNoiseImage, type="average",
+                                                                       shape=mask_size)
+                    self.display_image(data=filtered_image, widget=self.filtersImages[combo_id])
+                elif selected_component == "gaussian filter":
+                    filtered_image = self.imagesModels[0].apply_filter(data=self.currentNoiseImage, type="gaussian",
+                                                                       shape=mask_size, sigma=filter_sigma)
+                    self.display_image(data=filtered_image, widget=self.filtersImages[combo_id])
+                elif selected_component == "median filter":
+                    filtered_image = self.imagesModels[0].apply_filter(data=self.currentNoiseImage, type="median",
+                                                                       shape=mask_size)
+                    self.display_image(data=filtered_image, widget=self.filtersImages[combo_id])
 
             # Edge Detection Options
             if combo_id == 2:
-                if selectedComponent == "sobel mask":
+                if selected_component == "sobel mask":
                     edged_image = self.imagesModels[0].apply_edge_mask(type="sobel")
-                    self.displayImage(edged_image, self.filtersImages[combo_id])
-                elif selectedComponent == "roberts mask":
+                    self.display_image(edged_image, self.filtersImages[combo_id])
+                elif selected_component == "roberts mask":
                     edged_image = self.imagesModels[0].apply_edge_mask(type="roberts")
-                    self.displayImage(edged_image, self.filtersImages[combo_id])
-                elif selectedComponent == "prewitt mask":
+                    self.display_image(edged_image, self.filtersImages[combo_id])
+                elif selected_component == "prewitt mask":
                     edged_image = self.imagesModels[0].apply_edge_mask(type="perwitt")
-                    self.displayImage(edged_image, self.filtersImages[combo_id])
-                elif selectedComponent == "canny mask":
+                    self.display_image(edged_image, self.filtersImages[combo_id])
+                elif selected_component == "canny mask":
                     edged_image = self.imagesModels[0].apply_edge_mask(type="canny")
-                    self.displayImage(edged_image, self.filtersImages[combo_id])
+                    self.display_image(edged_image, self.filtersImages[combo_id])
 
-            logger.info(f"Viewing {selectedComponent} Component Of Image{combo_id + 1}")
+            logger.info(f"Viewing {selected_component} Component Of Image{combo_id + 1}")
 
         # If 2nd tab is selected
         elif tab_id == 1:
-            selectedComponent = self.combo_histogram.currentText().lower()
+            selected_component = self.combo_histogram.currentText().lower()
             # Histograms Options
             if combo_id == 3:
-                if selectedComponent == "original histogram":
+                if selected_component == "original histogram":
                     histo = self.imagesModels[1].get_histogram(type="original")
                     # self.displayImage(histo, self.img2_input_histo)
                     # TODO plot histogram and distribution curve
-                if selectedComponent == "equalized histogram":
+                if selected_component == "equalized histogram":
                     histo = self.imagesModels[1].get_histogram(type="equalized")
                     # self.displayImage(histo, self.img2_output_histo)
                     # TODO plot histogram and distribution curve
-                elif selectedComponent == "normalized histogram":
+                elif selected_component == "normalized histogram":
                     histo = self.imagesModels[1].get_histogram(type="normalized")
                     # self.displayImage(histo, self.img2_output_histo)
 
-                elif selectedComponent == "local thresholding":
+                elif selected_component == "local thresholding":
                     local_threshold = self.imagesModels[1].thresholding(type="local")
-                    self.displayImage(local_threshold, self.img2_output)
-                elif selectedComponent == "global thresholding":
+                    self.display_image(local_threshold, self.img2_output)
+                elif selected_component == "global thresholding":
                     global_threshold = self.imagesModels[1].thresholding(type="global")
-                    self.displayImage(global_threshold, self.img2_output)
-                elif selectedComponent == "transform to gray":
+                    self.display_image(global_threshold, self.img2_output)
+                elif selected_component == "transform to gray":
                     gray_image = self.imagesModels[1].to_gray()
-                    self.displayImage(gray_image, self.img2_output)
+                    self.display_image(gray_image, self.img2_output)
 
                     # TODO: Plot R, G and B Histograms separately
 
-            logger.info(f"Viewing {selectedComponent} Component Of Image{combo_id + 1}")
+            logger.info(f"Viewing {selected_component} Component Of Image{combo_id + 1}")
 
-    def sliderChanged(self, indx, val):
+    def slider_changed(self, indx, val):
         """
         detects the changes in the sliders using the indx given by ith slider
         and the slider value
@@ -298,11 +298,10 @@ class ImageProcessor(m.Ui_MainWindow):
         :param val: int
         :return: none
         """
-        self.sliderValuesClicked[indx] = val/10
-        self.updateCombosChanged(tab_id=0, combo_id=0)
+        self.sliderValuesClicked[indx] = val / 10
+        self.combo_box_changed(tab_id=0, combo_id=0)
 
-
-    def displayImage(self, data, widget):
+    def display_image(self, data, widget):
         """
         Display the given data
         :param data: 2d numpy array
@@ -314,7 +313,8 @@ class ImageProcessor(m.Ui_MainWindow):
                              padding=0)
         widget.ui.roiPlot.hide()
 
-    def mapRanges(self, inputValue: float, inMin: float, inMax: float, outMin: float, outMax: float):
+    @staticmethod
+    def map_ranges(inputValue: float, inMin: float, inMax: float, outMin: float, outMax: float):
         """
         Map a given value from range 1 -> range 2
         :param inputValue: The value you want to map
@@ -324,17 +324,17 @@ class ImageProcessor(m.Ui_MainWindow):
         :param outMax: Maximum Value of Range 2
         :return: The new Value in Range 2
         """
-        slope = (outMax-outMin) / (inMax-inMin)
-        return outMin + slope*(inputValue-inMin)
+        slope = (outMax - outMin) / (inMax - inMin)
+        return outMin + slope * (inputValue - inMin)
 
     @staticmethod
-    def showMessage(header, message, button, icon):
+    def show_message(header, message, button, icon):
         msg = QMessageBox()
         msg.setWindowTitle(header)
         msg.setText(message)
         msg.setIcon(icon)
         msg.setStandardButtons(button)
-        x = msg.exec_()
+        msg.exec_()
 
 
 def main():
@@ -343,9 +343,9 @@ def main():
     :return:
     """
     app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = ImageProcessor(MainWindow)
-    MainWindow.show()
+    main_window = QtWidgets.QMainWindow()
+    ImageProcessor(main_window)
+    main_window.show()
 
     sys.exit(app.exec_())
 
