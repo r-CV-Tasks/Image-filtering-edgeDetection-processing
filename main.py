@@ -58,9 +58,6 @@ class ImageProcessor(m.Ui_MainWindow):
         self.imagesSizes = {1: [self.label_imgSize_1], 2: [self.label_imgSize_2],
                              3: [self.label_imgSize_3], 4: [self.label_imgSize_4]}
 
-        # self.imagesLabels = [self.label_imgName_1, self.label_imgName_2, self.label_imgName_3, self.label_imgName_4]
-        # self.imagesSizes = [self.label_imgSize_1, self.label_imgSize_2, self.label_imgSize_3, self.label_imgSize_4]
-
         # list contains the last pressed values
         self.sliderValuesClicked = {0: ..., 1: ..., 2: ..., 3: ..., 4: ...}
         self.sliders = [self.snr_slider_1, self.sigma_slider_1, self.snr_slider_2, self.mask_size_1]
