@@ -79,7 +79,7 @@ def AverageFilter(source: np.ndarray, shape: int = 3) -> np.ndarray:
     kernel = CreateSquareKernel(shape, 'ones') * (1/shape**2)
 
     # Check for Grayscale Image
-    out = ApplyKernel(src, kernel, 'valid')
+    out = ApplyKernel(src, kernel, 'same')
     return out.astype('uint8')
 
 
@@ -98,7 +98,7 @@ def GaussianFilter(source: np.ndarray, shape: int = 3, sigma: [int, float] = 64)
     kernel = CreateSquareKernel(shape, 'gaussian', sigma)
 
     # Apply the Kernel
-    out = ApplyKernel(src, kernel, 'valid')
+    out = ApplyKernel(src, kernel, 'same')
     return out.astype('uint8')
 
 
