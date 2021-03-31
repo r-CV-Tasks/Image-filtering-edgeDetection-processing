@@ -111,30 +111,23 @@ def MedianFilter(source: np.ndarray, shape: int) -> np.ndarray:
     :return: Filtered Image
     """
     src = np.copy(source)
-    i = 0
-    j = 0
-    r, g, b = [], [], []
-    ch = [r, g, b]
-    out = []
+    ch = []
 
     # Pad the Image to obtain a Same Convolution
     src = ZeroPadImage(src, shape)
 
-    # Loop each channel in the image with the kernel size
-    # Calculate the Median value
-    # Append to the Channels List
-    for _ in range(0, source.shape[0]):
-        for _ in range(0, source.shape[1]):
-            for c in range(0, source.shape[2]):
-                kernel = src[i: i+shape, j: j+shape, c]
-                ch[c].append(int(np.median(kernel)))
-            j += 1
-        i += 1
-        j = 0
+    # Assuming Channels Last Convention
+    for c in range(src.shape[-1]):
+        # Looping the Image in the X and Y directions
+        # Extracting the Kernel
+        # Calculating the Median of the Kernel
+        ch.append([int(np.median(src[i: i+shape, j: j+shape, c]))
+                   for i in range(src.shape[0])
+                   for j in range(src.shape[1])]
+                  )
 
-    for c in ch:
-        length = int(np.sqrt(len(c)))
-        c = np.array(c, dtype=np.int).reshape((length, length))
-        out.append(c)
+        # Reshaping the convolution output with the image Dimensions
+        length = int(np.sqrt(len(ch[c])))
+        ch[c] = np.array(ch[c], dtype=np.int).reshape((length, length))
 
-    return np.stack(out, -1).astype('uint8')
+    return np.stack(ch, -1).astype('uint8')
