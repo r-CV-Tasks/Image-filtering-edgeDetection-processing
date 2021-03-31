@@ -50,15 +50,12 @@ class ImageModel():
         filtered_image = None
 
         if type == "average":
-            # TODO: Add Uniform Noise Algorithm on self.imgByte
             filtered_image = LowPass.AverageFilter(source=data, shape=shape)
 
         elif type == "gaussian":
-            # TODO: Add Gaussian Noise Algorithm on self.imgByte
             filtered_image = LowPass.GaussianFilter(source=data, shape=shape, sigma=sigma)
 
         elif type == "median":
-            # TODO: Add Salt & Pepper Noise Algorithm on self.imgByte
             filtered_image = LowPass.MedianFilter(source=data, shape=shape)
 
         return filtered_image
@@ -71,9 +68,6 @@ class ImageModel():
         :return:
         """
         edged_image = None
-
-        # This will be deleted
-        edged_image = self.imgByte
 
         if type == "sobel":
             # TODO: Add Sobel Mask Algorithm on self.imgByte
