@@ -63,6 +63,11 @@ class ImageProcessor(m.Ui_MainWindow):
         self.sliders = [self.snr_slider_1, self.sigma_slider_1, self.snr_slider_2, self.mask_size_1]
 
 
+        # Sliders Connections
+        for slider in self.sliders:
+            slider.id = self.sliders.index(slider)
+            slider.signal.connect(self.sliderChanged)
+
         # No Noisy Image Array yet
         self.currentNoiseImage = None
 
@@ -81,10 +86,6 @@ class ImageProcessor(m.Ui_MainWindow):
         self.combo_edges.activated.connect(lambda: self.updateCombosChanged(self.tab_index, 2))
         self.combo_histogram.activated.connect(lambda: self.updateCombosChanged(self.tab_index+1, 3))
 
-        # Sliders Connections
-        for slider in self.sliders:
-            slider.id = self.sliders.index(slider)
-            slider.signal.connect(self.sliderChanged)
 
         self.setupImagesView()
 
@@ -211,30 +212,35 @@ class ImageProcessor(m.Ui_MainWindow):
         # If 1st tab is selected
         if tab_id == 0:
             selectedComponent = self.updateCombos[combo_id].currentText().lower()
+            noise_snr = self.snr_slider_1.value() / 10
+            noise_sigma = self.sigma_slider_1.value()
+
+            filter_sigma = self.sigma_slider_2.value() / 10
+            mask_size = self.mask_size_1.value()
 
             # Noise Options
             if combo_id == 0:
                 if selectedComponent == "uniform noise":
-                    self.displayImage(self.imagesModels[0].uniform_noise, self.filtersImages[combo_id])
-                    self.currentNoiseImage = self.imagesModels[0].uniform_noise
+                    self.currentNoiseImage = self.imagesModels[0].add_noise(type="uniform", snr=noise_snr)
+                    self.displayImage(data=self.currentNoiseImage, widget=self.filtersImages[combo_id])
                 elif selectedComponent == "gaussian noise":
-                    self.displayImage(self.imagesModels[0].gaussian_noise, self.filtersImages[combo_id])
-                    self.currentNoiseImage = self.imagesModels[0].gaussian_noise
+                    self.currentNoiseImage = self.imagesModels[0].add_noise(type="gaussian", snr=noise_snr, sigma=noise_sigma)
+                    self.displayImage(data=self.currentNoiseImage, widget=self.filtersImages[combo_id])
                 elif selectedComponent == "salt & pepper noise":
-                    self.displayImage(self.imagesModels[0].saltpepper_noise, self.filtersImages[combo_id])
-                    self.currentNoiseImage = self.imagesModels[0].saltpepper_noise
+                    self.currentNoiseImage = self.imagesModels[0].add_noise(type="salt & pepper", snr=noise_snr)
+                    self.displayImage(data=self.currentNoiseImage, widget=self.filtersImages[combo_id])
 
             # Filters Options
             if combo_id == 1:
                 if selectedComponent == "average filter":
-                    filtered_image = self.imagesModels[0].apply_filter(data=self.currentNoiseImage, type="average")
-                    self.displayImage(filtered_image, self.filtersImages[combo_id])
+                    filtered_image = self.imagesModels[0].apply_filter(data=self.currentNoiseImage, type="average", shape=mask_size)
+                    self.displayImage(data=filtered_image, widget=self.filtersImages[combo_id])
                 elif selectedComponent == "gaussian filter":
-                    filtered_image = self.imagesModels[0].apply_filter(data=self.currentNoiseImage, type="gaussian")
-                    self.displayImage(filtered_image, self.filtersImages[combo_id])
+                    filtered_image = self.imagesModels[0].apply_filter(data=self.currentNoiseImage, type="gaussian", shape=mask_size, sigma=filter_sigma)
+                    self.displayImage(data=filtered_image, widget=self.filtersImages[combo_id])
                 elif selectedComponent == "median filter":
-                    filtered_image = self.imagesModels[0].apply_filter(data=self.currentNoiseImage, type="median")
-                    self.displayImage(filtered_image, self.filtersImages[combo_id])
+                    filtered_image = self.imagesModels[0].apply_filter(data=self.currentNoiseImage, type="median", shape=mask_size)
+                    self.displayImage(data=filtered_image, widget=self.filtersImages[combo_id])
 
             # Edge Detection Options
             if combo_id == 2:
@@ -286,14 +292,15 @@ class ImageProcessor(m.Ui_MainWindow):
 
     def sliderChanged(self, indx, val):
         """
-        detects the changes in the sliders and plot these changes using the indx to the band given by th slider
-        and the slider value which is the gain
+        detects the changes in the sliders using the indx given by ith slider
+        and the slider value
         :param indx: int
         :param val: int
         :return: none
         """
-        print(f"Slider {indx}: value: {val}")
         self.sliderValuesClicked[indx] = val/10
+
+        print(f"Slider {indx}: value: {val/10}")
 
 
     def displayImage(self, data, widget):
