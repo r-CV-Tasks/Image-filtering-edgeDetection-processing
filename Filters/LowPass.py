@@ -121,13 +121,16 @@ def MedianFilter(source: np.ndarray, shape: int) -> np.ndarray:
         # Looping the Image in the X and Y directions
         # Extracting the Kernel
         # Calculating the Median of the Kernel
-        ch.append([int(np.median(src[i: i+shape, j: j+shape, c]))
-                   for i in range(src.shape[0])
-                   for j in range(src.shape[1])]
-                  )
+        channel = []
+        for i in range(src.shape[0]):
+            for j in range(src.shape[1]):
+                kernel = src[i: i + shape, j: j + shape, c]
+                if kernel.shape == (shape, shape):
+                    channel.append(int(np.median(kernel)))
 
         # Reshaping the convolution output with the image Dimensions
-        length = int(np.sqrt(len(ch[c])))
-        ch[c] = np.array(ch[c], dtype=np.int).reshape((length, length))
+        length = int(np.sqrt(len(channel)))
+        channel = np.array(channel, dtype=np.int).reshape((length, length))
+        ch.append(channel)
 
     return np.stack(ch, -1).astype('uint8')
