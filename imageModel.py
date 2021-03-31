@@ -1,7 +1,5 @@
-import numpy as np
 import cv2
-from matplotlib import pyplot as plt
-
+from Filters import Noise
 
 class ImageModel():
 
@@ -14,6 +12,7 @@ class ImageModel():
 
         :param imgPath: absolute path of the image
         """
+
         self.imgPath = imgPath
         self.imgByte = cv2.imread(self.imgPath, flags=cv2.IMREAD_GRAYSCALE).T
         self.imgShape = self.imgByte.shape
@@ -37,15 +36,15 @@ class ImageModel():
 
         if type == "uniform":
             # TODO: Add Uniform Noise Algorithm on self.imgByte
-            pass
+            noisy_image = Noise.UniformNoise(source=self.imgByte, snr=0.1)
 
         elif type == "gaussian":
             # TODO: Add Gaussian Noise Algorithm on self.imgByte
-            pass
+            noisy_image = Noise.GaussianNoise(source=self.imgByte, sigma=10, snr=0.7)
 
         elif type == "salt & pepper":
             # TODO: Add Salt & Pepper Noise Algorithm on self.imgByte
-            pass
+            noisy_image = Noise.SaltPepperNoise(source=self.imgByte, snr=0.7)
 
         return noisy_image
 
@@ -96,8 +95,8 @@ class ImageModel():
             # TODO: Add Roberts Mask Algorithm on self.imgByte
             pass
 
-        elif type == "perwitt":
-            # TODO: Add Perwitt Mask Algorithm on self.imgByte
+        elif type == "prewitt":
+            # TODO: Add Prewitt Mask Algorithm on self.imgByte
             pass
 
         elif type == "canny":
