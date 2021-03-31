@@ -47,6 +47,9 @@ class ImageProcessor(m.Ui_MainWindow):
                              self.img2_input, self.img2_output,
                              self.imgA_input, self.imgB_input, self.imgX_output]
 
+        # No Noisy Image Array yet
+        self.currentNoiseImage = None
+
         self.imagesModels = [..., ..., ..., ...]
         self.heights = [..., ..., ..., ...]
         self.weights = [..., ..., ..., ...]
@@ -60,15 +63,12 @@ class ImageProcessor(m.Ui_MainWindow):
 
         # list contains the last pressed values
         self.sliderValuesClicked = {0: ..., 1: ..., 2: ..., 3: ...}
-        self.sliders = [self.snr_slider_1, self.sigma_slider_1, self.sigma_slider_2, self.mask_size_1]
+        self.sliders = [self.snr_slider_1, self.sigma_slider_1, self.mask_size_1, self.sigma_slider_2]
 
         # Sliders Connections
         for slider in self.sliders:
             slider.id = self.sliders.index(slider)
             slider.signal.connect(self.slider_changed)
-
-        # No Noisy Image Array yet
-        self.currentNoiseImage = None
 
         # Combo Lists
         self.updateCombos = [self.combo_noise, self.combo_filter, self.combo_edges]
@@ -178,9 +178,6 @@ class ImageProcessor(m.Ui_MainWindow):
                 # Enable Combo Boxes
                 self.updateCombos[i].setEnabled(True)
 
-                # Enable Filters Parameters
-                self.sliders[i].setEnabled(True)
-
         elif tab_id == 1:
             self.combo_histogram.setEnabled(True)
         elif tab_id == 2:
@@ -201,9 +198,12 @@ class ImageProcessor(m.Ui_MainWindow):
         :param combo_id:
         :return:
         """
+
         # If 1st tab is selected
         if tab_id == 0:
+            # Get Values from combo box and sliders
             selected_component = self.updateCombos[combo_id].currentText().lower()
+
             noise_snr = self.snr_slider_1.value() / 10
             noise_sigma = self.sigma_slider_1.value()  # This value from 0 -> 4
             noise_sigma = np.round(self.map_ranges(noise_sigma, 0, 4, 0, 255))  # This value from 0 -> 255
@@ -216,12 +216,13 @@ class ImageProcessor(m.Ui_MainWindow):
 
             # Noise Options
             if combo_id == 0:
+                self.snr_slider_1.setEnabled(True)
                 if selected_component == "uniform noise":
                     self.currentNoiseImage = self.imagesModels[0].add_noise(type="uniform", snr=noise_snr)
                     self.display_image(data=self.currentNoiseImage, widget=self.filtersImages[combo_id])
                 elif selected_component == "gaussian noise":
-                    self.currentNoiseImage = self.imagesModels[0].add_noise(type="gaussian", snr=noise_snr,
-                                                                            sigma=noise_sigma)
+                    self.sigma_slider_1.setEnabled(True)
+                    self.currentNoiseImage = self.imagesModels[0].add_noise(type="gaussian", snr=noise_snr, sigma=noise_sigma)
                     self.display_image(data=self.currentNoiseImage, widget=self.filtersImages[combo_id])
                 elif selected_component == "salt & pepper noise":
                     self.currentNoiseImage = self.imagesModels[0].add_noise(type="salt & pepper", snr=noise_snr)
@@ -229,11 +230,18 @@ class ImageProcessor(m.Ui_MainWindow):
 
             # Filters Options
             if combo_id == 1:
-                if selected_component == "average filter":
+                self.mask_size_1.setEnabled(True)
+
+                # Check if there's a noisy image already
+                if self.currentNoiseImage is None:
+                    self.show_message(header="Warning!!", message="Apply noise to the image first",
+                                     button=QMessageBox.Ok, icon=QMessageBox.Warning)
+                elif selected_component == "average filter":
                     filtered_image = self.imagesModels[0].apply_filter(data=self.currentNoiseImage, type="average",
                                                                        shape=mask_size)
                     self.display_image(data=filtered_image, widget=self.filtersImages[combo_id])
                 elif selected_component == "gaussian filter":
+                    self.sigma_slider_2.setEnabled(True)
                     filtered_image = self.imagesModels[0].apply_filter(data=self.currentNoiseImage, type="gaussian",
                                                                        shape=mask_size, sigma=filter_sigma)
                     self.display_image(data=filtered_image, widget=self.filtersImages[combo_id])
@@ -298,8 +306,12 @@ class ImageProcessor(m.Ui_MainWindow):
         :param val: int
         :return: none
         """
-        self.sliderValuesClicked[indx] = val / 10
-        self.combo_box_changed(tab_id=0, combo_id=0)
+        print(f"Slider {indx} With Value {val}")
+        # self.sliderValuesClicked[indx] = val / 10
+        if indx == 0 or indx == 1:
+            self.combo_box_changed(tab_id=self.tab_index, combo_id=0)
+        elif indx == 2 or indx == 3:
+            self.combo_box_changed(tab_id=self.tab_index, combo_id=1)
 
     def display_image(self, data, widget):
         """
