@@ -65,7 +65,7 @@ def ApplyKernel(source: np.ndarray, kernel: np.ndarray, mode: str) -> np.ndarray
     return np.stack(out, -1)
 
 
-def AverageFilter(source: np.ndarray, shape: int) -> np.ndarray:
+def AverageFilter(source: np.ndarray, shape: int = 3) -> np.ndarray:
     """
         Implementation of Average Low-pass Filter
     :param source: Image to apply Filter to
@@ -83,7 +83,7 @@ def AverageFilter(source: np.ndarray, shape: int) -> np.ndarray:
     return out.astype('uint8')
 
 
-def GaussianFilter(source: np.ndarray, shape: int, sigma: [int, float]) -> np.ndarray:
+def GaussianFilter(source: np.ndarray, shape: int = 3, sigma: [int, float] = 64) -> np.ndarray:
     """
         Gaussian Low Pass Filter Implementation
     :param source: Image to Apply Filter to
