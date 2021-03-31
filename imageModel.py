@@ -1,5 +1,6 @@
 import cv2
-from Filters import Noise
+import numpy as np
+from Filters import Noise, LowPass
 
 class ImageModel():
 
@@ -17,61 +18,48 @@ class ImageModel():
         self.imgByte = cv2.imread(self.imgPath, flags=cv2.IMREAD_GRAYSCALE).T
         self.imgShape = self.imgByte.shape
 
-        # Noisy images
-        self.uniform_noise = self.add_noise("uniform")
-        self.gaussian_noise = self.add_noise("gaussian")
-        self.saltpepper_noise = self.add_noise("salt & pepper")
-
-
-    def add_noise(self, type: str):
+    def add_noise(self, type: str, snr: float = 0.5, sigma: int = 64) -> np.ndarray:
+        """
+        This function adds different types of noises to the given image
+        :param type: Specify the type of noise to be added
+        :return: numpy array of the new noisy image
         """
 
-        :param type:
-        :return:
-        """
         noisy_image = None
 
-        # This will be deleted
-        noisy_image = self.imgByte.T
-
         if type == "uniform":
-            # TODO: Add Uniform Noise Algorithm on self.imgByte
-            noisy_image = Noise.UniformNoise(source=self.imgByte, snr=0.1)
+            noisy_image = Noise.UniformNoise(source=self.imgByte, snr=snr)
 
         elif type == "gaussian":
-            # TODO: Add Gaussian Noise Algorithm on self.imgByte
-            noisy_image = Noise.GaussianNoise(source=self.imgByte, sigma=10, snr=0.7)
+            noisy_image = Noise.GaussianNoise(source=self.imgByte, sigma=sigma, snr=snr)
 
         elif type == "salt & pepper":
-            # TODO: Add Salt & Pepper Noise Algorithm on self.imgByte
-            noisy_image = Noise.SaltPepperNoise(source=self.imgByte, snr=0.7)
+            noisy_image = Noise.SaltPepperNoise(source=self.imgByte, snr=snr)
 
         return noisy_image
 
 
-    def apply_filter(self, data, type: str):
+    def apply_filter(self, data: np.ndarray, type: str, shape: int, sigma: int = 0) -> np.ndarray:
+        """
+        This function adds different types of filters to the given image
+        :param data: The given image numpy array
+        :param type: The type of filter to be applied on the given image
+        :return: numpy array of the new filtered image
         """
 
-        :param data:
-        :param type:
-        :return:
-        """
         filtered_image = None
-
-        # This will be deleted
-        filtered_image = self.imgByte
 
         if type == "average":
             # TODO: Add Uniform Noise Algorithm on self.imgByte
-            pass
+            filtered_image = LowPass.AverageFilter(source=data, shape=shape)
 
         elif type == "gaussian":
             # TODO: Add Gaussian Noise Algorithm on self.imgByte
-            pass
+            filtered_image = LowPass.GaussianFilter(source=data, shape=shape, sigma=sigma)
 
         elif type == "median":
             # TODO: Add Salt & Pepper Noise Algorithm on self.imgByte
-            pass
+            filtered_image = LowPass.MedianFilter(source=data, shape=shape)
 
         return filtered_image
 
