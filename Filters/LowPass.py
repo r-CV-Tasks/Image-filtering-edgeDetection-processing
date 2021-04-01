@@ -126,15 +126,12 @@ def MedianFilter(source: np.ndarray, shape: int) -> np.ndarray:
     # Pad the Image to obtain a Same Convolution
     src = ZeroPadImage(src, shape)
 
-    # Assuming Channels Last Convention
-    for c in range(result.shape[-1]):
+    for ix, iy, ic in np.ndindex(src.shape):
         # Looping the Image in the X and Y directions
         # Extracting the Kernel
         # Calculating the Median of the Kernel
-        for i in range(result.shape[0]):
-            for j in range(result.shape[1]):
-                kernel = src[i: i + shape, j: j + shape, c]
-                if kernel.shape == (shape, shape):
-                    result[i, j, c] = int(np.median(kernel))
+        kernel = src[ix: ix+shape, iy: iy+shape, ic]
+        if kernel.shape == (shape, shape):
+            result[ix, iy, ic] = np.median(kernel).astype('uint8')
 
     return result
