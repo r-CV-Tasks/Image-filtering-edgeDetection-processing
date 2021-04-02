@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
-from Filters import Noise, LowPass
+from libs import Noise, LowPass
+from libs import Histogram
+
 
 class ImageModel():
 
@@ -96,12 +98,10 @@ class ImageModel():
 
         histo_plot = None
 
-        # This will be deleted
-        histo_plot = self.imgByte
-
         if type == "original":
             # TODO: Get Original Histogram of self.imgBye
-            pass
+            hist, bins = Histogram.histogram(self.imgByte, 256)
+            return hist, bins
 
         if type == "equalized":
             # TODO: Get Equalized Histogram of self.imgByte
@@ -110,8 +110,6 @@ class ImageModel():
         elif type == "normalized":
             # TODO: Get Normalized Histogram of self.imgByte
             pass
-
-        return histo_plot
 
     def thresholding(self, type: str):
         """

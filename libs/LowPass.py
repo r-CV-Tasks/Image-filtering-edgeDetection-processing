@@ -1,6 +1,6 @@
 
 #
-# Low Pass Filters Implementations
+# Low Pass libs Implementations
 #
 
 import numpy as np
