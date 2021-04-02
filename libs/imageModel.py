@@ -89,7 +89,7 @@ class ImageModel():
 
         return edged_image
 
-    def get_histogram(self, type: str):
+    def get_histogram(self, type: str, bins_number: int = 256):
         """
 
         :param type:
@@ -99,8 +99,7 @@ class ImageModel():
         histo_plot = None
 
         if type == "original":
-            # TODO: Get Original Histogram of self.imgBye
-            hist, bins = Histogram.histogram(self.imgByte, 256)
+            hist, bins = Histogram.histogram(self.imgByte, bins=bins_number)
             return hist, bins
 
         if type == "equalized":

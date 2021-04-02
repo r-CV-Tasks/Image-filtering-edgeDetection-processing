@@ -319,15 +319,12 @@ class ImageProcessor(m.Ui_MainWindow):
             if combo_id == 3:
                 if selected_component == "original histogram":
                     histo, bins = self.imagesModels[1].get_histogram(type="original")
-                    # TODO plot histogram and distribution curve
+                    bg1 = pg.BarGraphItem(x=bins, height=histo, width=0.6, brush='r')
+                    self.img2_input_histo.addItem(bg1)
 
                     # setting pen=(i,3) automatically creates three different-colored pens
                     # self.img2_input_histo.plot(bins, histo, pin="red")
                     # self.img2_input_histo.plot(x=bins, y=histo, brush="g")
-
-                    bg1 = pg.BarGraphItem(x=bins, height=histo, width=0.6, brush='r')
-                    self.img2_input_histo.addItem(bg1)
-
 
                 if selected_component == "equalized histogram":
                     histo = self.imagesModels[1].get_histogram(type="equalized")
