@@ -89,17 +89,15 @@ class ImageModel():
 
         return edged_image
 
-    def get_histogram(self, type: str, bins_number: int = 256):
+    def get_histogram(self, data: np.array, type: str, bins_num: int = 255):
         """
 
         :param type:
         :return:
         """
 
-        histo_plot = None
-
         if type == "original":
-            hist, bins = Histogram.histogram(self.imgByte, bins=bins_number)
+            hist, bins = Histogram.histogram(data=data, bins_num=bins_num)
             return hist, bins
 
         if type == "equalized":
@@ -107,10 +105,10 @@ class ImageModel():
             pass
 
         elif type == "normalized":
-            # TODO: Get Normalized Histogram of self.imgByte
-            pass
+            norm, histo, bins = Histogram.normalize_histogram(data=data, bins_num=bins_num)
+            return norm, histo, bins
 
-    def thresholding(self, type: str):
+    def thresholding(self, type: str, threshold: int = 128):
         """
 
         :param type:
@@ -118,13 +116,14 @@ class ImageModel():
         """
 
         threshold_image = None
+
         if type == "local":
             # TODO: Apply Local Thresholding on self.imgByte
             pass
 
         elif type == "global":
             # TODO: Apply Global Thresholding on self.imgByte
-            pass
+            threshold_image = Histogram.threshold_image(data=self.imgByte, threshold=threshold)
 
         return threshold_image
 
