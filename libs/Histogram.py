@@ -1,18 +1,41 @@
-
 #
 # Histograms Implementations
 #
 
 import numpy as np
 
-def histogram(data, bins):
-    bins_arr = np.arange(0, bins)
-    hist = np.bincount(data.ravel(), minlength=256)
-    return hist, bins_arr
+
+def histogram(data: np.array, bins_num: int = 255):
+    """
+
+    :param data:
+    :param bins_num:
+    :return:
+    """
+    if bins_num == 2:
+        new_data = data
+    else:
+        new_data = np.round(np.interp(data, (data.min(), data.max()), (0, bins_num))).astype('uint8')
+    bins = np.arange(0, bins_num)
+    hist = np.bincount(new_data.ravel(), minlength=bins_num)
+    return hist, bins
+
 
 def equalize_histogram(data, bins):
-
     pass
 
-def normalize_histogram(data, bins):
-    pass
+
+def normalize_histogram(data: np.array, bins_num: int = 255):
+    mn = np.min(data)
+    mx = np.max(data)
+    norm = (data - mn) * (1.0 / (mx - mn))
+    histo, bins = histogram(norm, bins_num=bins_num)
+    return norm, histo, bins
+
+
+def threshold_image(data: np.ndarray, threshold: int, type: str = "global"):
+    if type == "global":
+        return (data > threshold).astype(int)
+
+    elif type == "local":
+        pass
