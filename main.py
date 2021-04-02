@@ -3,10 +3,13 @@ import sys
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtCore import QThread, pyqtSignal
+import pyqtgraph as pg
 from UI import mainGUI as m
 import cv2
 import numpy as np
-from imageModel import ImageModel
+from libs.imageModel import ImageModel
+from libs.helpers import map_ranges
+from libs.Histogram import histogram
 from threading import Thread
 
 # importing module
@@ -90,7 +93,7 @@ class ImageProcessor(m.Ui_MainWindow):
             slider.signal.connect(self.slider_changed)
 
         # Combo Lists
-        self.updateCombos = [self.combo_noise, self.combo_filter, self.combo_edges]
+        self.updateCombos = [self.combo_noise, self.combo_filter, self.combo_edges, self.combo_histogram]
 
         # Setup Load Buttons Connections
         self.btn_load_1.clicked.connect(lambda: self.load_file(self.tab_index))
@@ -102,7 +105,7 @@ class ImageProcessor(m.Ui_MainWindow):
         self.combo_noise.activated.connect(lambda: self.combo_box_changed(self.tab_index, 0))
         self.combo_filter.activated.connect(lambda: self.combo_box_changed(self.tab_index, 1))
         self.combo_edges.activated.connect(lambda: self.combo_box_changed(self.tab_index, 2))
-        self.combo_histogram.activated.connect(lambda: self.combo_box_changed(self.tab_index + 1, 3))
+        self.combo_histogram.activated.connect(lambda: self.combo_box_changed(self.tab_index, 3))
 
         # # Test Threads
         # # Setup Combo Connections
@@ -113,16 +116,19 @@ class ImageProcessor(m.Ui_MainWindow):
 
         self.setup_images_view()
 
-        self.img2_input_histo.plotItem.setTitle("Histogram")
-        self.img2_input_histo.plotItem.showGrid(True, True, alpha=0.8)
-        self.img2_input_histo.plotItem.setLabel("bottom", text="Pixels")
+        # self.img2_input_histo.plotItem.setTitle("Histogram")
+        # self.img2_input_histo.plotItem.showGrid(True, True, alpha=0.8)
+        # self.img2_input_histo.plotItem.setLabel("bottom", text="Pixels")
+
 
         x = np.arange(1000)
         y = np.random.normal(size=(3, 1000))
 
-        for i in range(3):
-            # setting pen=(i,3) automatically creates three different-colored pens
-            self.img2_input_histo.plot(x, y[i], pen=(i, 3))
+        # for i in range(3):
+        #     # setting pen=(i,3) automatically creates three different-colored pens
+        #     self.img2_input_histo.plot(x, y[i], pen=(i, 3))
+
+
 
     def tab_changed(self):
         self.tab_index = self.tabWidget_process.currentIndex()
@@ -239,13 +245,13 @@ class ImageProcessor(m.Ui_MainWindow):
 
             noise_snr = self.snr_slider_1.value() / 10
             noise_sigma = self.sigma_slider_1.value()  # This value from 0 -> 4
-            noise_sigma = np.round(self.map_ranges(noise_sigma, 0, 4, 0, 255))  # This value from 0 -> 255
+            noise_sigma = np.round(map_ranges(noise_sigma, 0, 4, 0, 255))  # This value from 0 -> 255
 
             filter_sigma = self.sigma_slider_2.value()
-            filter_sigma = np.round(self.map_ranges(filter_sigma, 0, 4, 0, 255))
+            filter_sigma = np.round(map_ranges(filter_sigma, 0, 4, 0, 255))
 
             mask_size = self.mask_size_1.value()
-            mask_size = int(np.round(self.map_ranges(mask_size, 1, 4, 3, 9)))
+            mask_size = int(np.round(map_ranges(mask_size, 1, 4, 3, 9)))
 
             # Noise Options
             if combo_id == 0:
@@ -266,7 +272,7 @@ class ImageProcessor(m.Ui_MainWindow):
                 if self.currentNoiseImage is not None:
                     selected_component = self.updateCombos[1].currentText().lower()
 
-            # Filters Options
+            # libs Options
             if combo_id == 1:
                 self.mask_size_1.setEnabled(True)
 
@@ -308,12 +314,21 @@ class ImageProcessor(m.Ui_MainWindow):
         # If 2nd tab is selected
         elif tab_id == 1:
             selected_component = self.combo_histogram.currentText().lower()
+            print(selected_component)
             # Histograms Options
             if combo_id == 3:
                 if selected_component == "original histogram":
-                    histo = self.imagesModels[1].get_histogram(type="original")
-                    # self.displayImage(histo, self.img2_input_histo)
+                    histo, bins = self.imagesModels[1].get_histogram(type="original")
                     # TODO plot histogram and distribution curve
+
+                    # setting pen=(i,3) automatically creates three different-colored pens
+                    # self.img2_input_histo.plot(bins, histo, pin="red")
+                    # self.img2_input_histo.plot(x=bins, y=histo, brush="g")
+
+                    bg1 = pg.BarGraphItem(x=bins, height=histo, width=0.6, brush='r')
+                    self.img2_input_histo.addItem(bg1)
+
+
                 if selected_component == "equalized histogram":
                     histo = self.imagesModels[1].get_histogram(type="equalized")
                     # self.displayImage(histo, self.img2_output_histo)
@@ -348,6 +363,11 @@ class ImageProcessor(m.Ui_MainWindow):
         # self.sliderValuesClicked[indx] = val / 10
         if indx == 0 or indx == 1:
             self.combo_box_changed(tab_id=self.tab_index, combo_id=0)
+
+            # Change the filtered image after changing the noisy image
+            if self.currentNoiseImage is not None:
+                self.combo_box_changed(tab_id=self.tab_index, combo_id=1)
+
         elif indx == 2 or indx == 3:
             self.combo_box_changed(tab_id=self.tab_index, combo_id=1)
 
@@ -359,23 +379,9 @@ class ImageProcessor(m.Ui_MainWindow):
         :return:
         """
         widget.setImage(data)
-        widget.view.setRange(xRange=[0, self.imagesModels[0].imgShape[0]], yRange=[0, self.imagesModels[0].imgShape[1]],
+        widget.view.setRange(xRange=[0, data.shape[0]], yRange=[0, data.shape[1]],
                              padding=0)
         widget.ui.roiPlot.hide()
-
-    @staticmethod
-    def map_ranges(inputValue: float, inMin: float, inMax: float, outMin: float, outMax: float):
-        """
-        Map a given value from range 1 -> range 2
-        :param inputValue: The value you want to map
-        :param inMin: Minimum Value of Range 1
-        :param inMax: Maximum Value of Range 1
-        :param outMin: Minimum Value of Range 2
-        :param outMax: Maximum Value of Range 2
-        :return: The new Value in Range 2
-        """
-        slope = (outMax - outMin) / (inMax - inMin)
-        return outMin + slope * (inputValue - inMin)
 
     @staticmethod
     def show_message(header, message, button, icon):
