@@ -21,7 +21,7 @@ def histogram(data: np.array, bins_num: int = 255):
     return hist, bins
 
 
-def equalize_histogram(data, bins):
+def equalize_histogram(data, bins_num: int = 255):
     pass
 
 
@@ -35,7 +35,8 @@ def normalize_histogram(data: np.array, bins_num: int = 255):
 
 def threshold_image(data: np.ndarray, threshold: int, type: str = "global"):
     if type == "global":
-        return (data > threshold).astype(int)
+        gray_img = rgb_to_gray(data)
+        return (gray_img > threshold).astype(int)
 
     elif type == "local":
         pass

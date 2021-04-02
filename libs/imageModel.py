@@ -23,117 +23,120 @@ class ImageModel():
         self.imgByte_RGB = cv2.transpose(bgr_img_rot)
         self.imgShape = self.imgByte.shape
 
-    def add_noise(self, type: str, snr: float = 0.5, sigma: int = 64) -> np.ndarray:
-        """
-        This function adds different types of noises to the given image
-        :param type: Specify the type of noise to be added
-        :return: numpy array of the new noisy image
-        """
 
-        noisy_image = None
+def add_noise(data: np.array, type: str, snr: float = 0.5, sigma: int = 64) -> np.ndarray:
+    """
+    This function adds different types of noises to the given image
+    :param type: Specify the type of noise to be added
+    :return: numpy array of the new noisy image
+    """
 
-        if type == "uniform":
-            noisy_image = Noise.UniformNoise(source=self.imgByte, snr=snr)
+    noisy_image = None
 
-        elif type == "gaussian":
-            noisy_image = Noise.GaussianNoise(source=self.imgByte, sigma=sigma, snr=snr)
+    if type == "uniform":
+        noisy_image = Noise.UniformNoise(source=data, snr=snr)
 
-        elif type == "salt & pepper":
-            noisy_image = Noise.SaltPepperNoise(source=self.imgByte, snr=snr)
+    elif type == "gaussian":
+        noisy_image = Noise.GaussianNoise(source=data, sigma=sigma, snr=snr)
 
-        return noisy_image
+    elif type == "salt & pepper":
+        noisy_image = Noise.SaltPepperNoise(source=data, snr=snr)
 
-
-    def apply_filter(self, data: np.ndarray, type: str, shape: int, sigma: [int, float] = 0) -> np.ndarray:
-        """
-        This function adds different types of filters to the given image
-        :param data: The given image numpy array
-        :param type: The type of filter to be applied on the given image
-        :return: numpy array of the new filtered image
-        """
-
-        filtered_image = None
-
-        if type == "average":
-            filtered_image = LowPass.AverageFilter(source=data, shape=shape)
-
-        elif type == "gaussian":
-            filtered_image = LowPass.GaussianFilter(source=data, shape=shape, sigma=sigma)
-
-        elif type == "median":
-            filtered_image = LowPass.MedianFilter(source=data, shape=shape)
-
-        return filtered_image
+    return noisy_image
 
 
-    def apply_edge_mask(self, type: str):
-        """
+def apply_filter(data: np.array, type: str, shape: int, sigma: [int, float] = 0) -> np.ndarray:
+    """
+    This function adds different types of filters to the given image
+    :param data: The given image numpy array
+    :param type: The type of filter to be applied on the given image
+    :return: numpy array of the new filtered image
+    """
 
-        :param type:
-        :return:
-        """
-        edged_image = None
+    filtered_image = None
 
-        if type == "sobel":
-            # TODO: Add Sobel Mask Algorithm on self.imgByte
-            pass
+    if type == "average":
+        filtered_image = LowPass.AverageFilter(source=data, shape=shape)
 
-        elif type == "roberts":
-            # TODO: Add Roberts Mask Algorithm on self.imgByte
-            pass
+    elif type == "gaussian":
+        filtered_image = LowPass.GaussianFilter(source=data, shape=shape, sigma=sigma)
 
-        elif type == "prewitt":
-            # TODO: Add Prewitt Mask Algorithm on self.imgByte
-            pass
+    elif type == "median":
+        filtered_image = LowPass.MedianFilter(source=data, shape=shape)
 
-        elif type == "canny":
-            # TODO: Add Canny Mask Algorithm on self.imgByte
-            pass
-
-        return edged_image
-
-    def get_histogram(self, data: np.array, type: str, bins_num: int = 255):
-        """
-
-        :param type:
-        :return:
-        """
-
-        if type == "original":
-            hist, bins = Histogram.histogram(data=data, bins_num=bins_num)
-            return hist, bins
-
-        if type == "equalized":
-            # TODO: Get Equalized Histogram of self.imgByte
-            pass
-
-        elif type == "normalized":
-            norm, histo, bins = Histogram.normalize_histogram(data=data, bins_num=bins_num)
-            return norm, histo, bins
-
-    def thresholding(self, type: str, threshold: int = 128):
-        """
-
-        :param type:
-        :return:
-        """
-
-        threshold_image = None
-
-        if type == "local":
-            # TODO: Apply Local Thresholding on self.imgByte
-            pass
-
-        elif type == "global":
-            # TODO: Apply Global Thresholding on self.imgByte
-            threshold_image = Histogram.threshold_image(data=self.imgByte, threshold=threshold)
-
-        return threshold_image
+    return filtered_image
 
 
-    def rgb_to_gray(self, data: np.array):
-        """
+def apply_edge_mask(data: np.array, type: str, shape: int = 3):
+    """
 
-        :return:
-        """
-        return np.dot(data[..., :3], [0.299, 0.587, 0.114])
+    :param type:
+    :return:
+    """
+    edged_image = None
+
+    if type == "sobel":
+        # TODO: Add Sobel Mask Algorithm on self.imgByte
+        pass
+
+    elif type == "roberts":
+        # TODO: Add Roberts Mask Algorithm on self.imgByte
+        pass
+
+    elif type == "prewitt":
+        # TODO: Add Prewitt Mask Algorithm on self.imgByte
+        pass
+
+    elif type == "canny":
+        # TODO: Add Canny Mask Algorithm on self.imgByte
+        pass
+
+    return edged_image
+
+
+def get_histogram(data: np.array, type: str, bins_num: int = 255):
+    """
+
+    :param type:
+    :return:
+    """
+
+    if type == "original":
+        hist, bins = Histogram.histogram(data=data, bins_num=bins_num)
+        return hist, bins
+
+    if type == "equalized":
+        # TODO: Get Equalized Histogram of self.imgByte
+        hist, bins = Histogram.equalize_histogram(data=data, bins_num=bins_num)
+        pass
+
+    elif type == "normalized":
+        norm, histo, bins = Histogram.normalize_histogram(data=data, bins_num=bins_num)
+        return norm, histo, bins
+
+
+def thresholding(data: np.array, type: str, threshold: int = 128):
+    """
+
+    :param type:
+    :return:
+    """
+
+    threshold_image = None
+
+    if type == "local":
+        # TODO: Apply Local Thresholding on self.imgByte
+        pass
+
+    elif type == "global":
+        threshold_image = Histogram.threshold_image(data=data, threshold=threshold, type="global")
+
+    return threshold_image
+
+
+def rgb_to_gray(data: np.array):
+    """
+
+    :return:
+    """
+    return np.dot(data[..., :3], [0.299, 0.587, 0.114])
