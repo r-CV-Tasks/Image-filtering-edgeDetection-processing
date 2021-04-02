@@ -1,6 +1,6 @@
 
 #
-# Low Pass Filters Implementations
+# Low Pass libs Implementations
 #
 
 import numpy as np
@@ -18,11 +18,15 @@ def ZeroPadImage(source: np.ndarray, f: int) -> np.ndarray:
     src = np.copy(source)
 
     # Calculate Padding size
-    p = (f - 1)/2
+    p = int((f - 1)/2)
 
     # Apply Zero Padding
     out = np.pad(src, (p, p), 'constant', constant_values=0)
-    return out
+
+    if len(src.shape) == 3:
+        return out[:, :, p:-p]
+    elif len(src.shape) == 2:
+        return out
 
 
 def CreateSquareKernel(size: int, mode: str, sigma: [int, float] = None) -> np.ndarray:
@@ -65,7 +69,7 @@ def ApplyKernel(source: np.ndarray, kernel: np.ndarray, mode: str) -> np.ndarray
     return np.stack(out, -1)
 
 
-def AverageFilter(source: np.ndarray, shape: int) -> np.ndarray:
+def AverageFilter(source: np.ndarray, shape: int = 3) -> np.ndarray:
     """
         Implementation of Average Low-pass Filter
     :param source: Image to apply Filter to
@@ -79,11 +83,11 @@ def AverageFilter(source: np.ndarray, shape: int) -> np.ndarray:
     kernel = CreateSquareKernel(shape, 'ones') * (1/shape**2)
 
     # Check for Grayscale Image
-    out = ApplyKernel(src, kernel, 'valid')
+    out = ApplyKernel(src, kernel, 'same')
     return out.astype('uint8')
 
 
-def GaussianFilter(source: np.ndarray, shape: int, sigma: [int, float]) -> np.ndarray:
+def GaussianFilter(source: np.ndarray, shape: int = 3, sigma: [int, float] = 64) -> np.ndarray:
     """
         Gaussian Low Pass Filter Implementation
     :param source: Image to Apply Filter to
@@ -98,7 +102,7 @@ def GaussianFilter(source: np.ndarray, shape: int, sigma: [int, float]) -> np.nd
     kernel = CreateSquareKernel(shape, 'gaussian', sigma)
 
     # Apply the Kernel
-    out = ApplyKernel(src, kernel, 'valid')
+    out = ApplyKernel(src, kernel, 'same')
     return out.astype('uint8')
 
 
@@ -111,26 +115,23 @@ def MedianFilter(source: np.ndarray, shape: int) -> np.ndarray:
     :return: Filtered Image
     """
     src = np.copy(source)
-    i = 0
-    j = 0
-    r, g, b = [], [], []
-    ch = [r, g, b]
-    img_shape = src.shape
+
+    # Check image for right dimensions
+    if len(src.shape) == 2:
+        src = np.expand_dims(src, -1)
+
+    # Create an Array of the same size as input image
+    result = np.zeros(src.shape)
 
     # Pad the Image to obtain a Same Convolution
     src = ZeroPadImage(src, shape)
 
-    # Loop each channel in the image with the kernel size
-    # Calculate the Median value
-    # Append to the Channels List
-    for _ in range(0, source.shape[0]):
-        for _ in range(0, source.shape[1]):
-            for c in range(0, source.shape[2]):
-                kernel = src[i: i+3, j: j+3, c]
-                ch[c].append(np.median(kernel))
-            j += 1
-        i += 1
+    for ix, iy, ic in np.ndindex(src.shape):
+        # Looping the Image in the X and Y directions
+        # Extracting the Kernel
+        # Calculating the Median of the Kernel
+        kernel = src[ix: ix+shape, iy: iy+shape, ic]
+        if kernel.shape == (shape, shape):
+            result[ix, iy, ic] = np.median(kernel).astype('uint8')
 
-    for c in ch:
-        pass
-    pass
+    return result
