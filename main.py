@@ -174,7 +174,7 @@ class ImageProcessor(m.Ui_MainWindow):
                 self.clear_results(tab_id=img_id)
 
                 # Create and Display Original Image
-                self.display_image(self.imagesModels[img_id].imgByte, self.inputImages[img_id])
+                self.display_image(self.imagesModels[img_id].imgByte_RGB, self.inputImages[img_id])
 
                 # Enable the combo box and parameters input
                 self.enable_gui(tab_id=img_id)
@@ -243,6 +243,7 @@ class ImageProcessor(m.Ui_MainWindow):
             # Get Values from combo box and sliders
             selected_component = self.updateCombos[combo_id].currentText().lower()
 
+            # Adjust Sliders Values
             noise_snr = self.snr_slider_1.value() / 10
             noise_sigma = self.sigma_slider_1.value()  # This value from 0 -> 4
             noise_sigma = np.round(map_ranges(noise_sigma, 0, 4, 0, 255))  # This value from 0 -> 255
@@ -337,6 +338,7 @@ class ImageProcessor(m.Ui_MainWindow):
                     self.img2_output_histo.addItem(bg1)
 
                 elif selected_component == "local thresholding":
+                    # TODO Add Local Thresholding
                     local_threshold = self.imagesModels[1].thresholding(type="local", threshold=128)
                     self.display_image(local_threshold, self.img2_output)
 
@@ -355,10 +357,25 @@ class ImageProcessor(m.Ui_MainWindow):
                     self.display_image(global_threshold, self.img2_output)
 
                 elif selected_component == "transform to gray":
-                    gray_image = self.imagesModels[1].to_gray()
+                    gray_image = self.imagesModels[1].rgb_to_gray(self.imagesModels[1].imgByte_RGB)
                     self.display_image(gray_image, self.img2_output)
 
+                    # for i in range(3):
+                    #     # setting pen=(i,3) automatically creates three different-colored pens
+                    #     self.img2_input_histo.plot(x, y[i], pen=(i, 3))
+
                     # TODO: Plot R, G and B Histograms separately
+                    histos = []
+                    bins = []
+                    pens = [pg.mkPen(color=(255, 0, 0)), pg.mkPen(color=(0, 255, 0)),
+                                 pg.mkPen(color=(0, 0, 255))]
+                    # pens = ['r', 'g', 'b']
+
+                    for i in range(3):
+                        histos.append(self.imagesModels[1].get_histogram(data=self.imagesModels[1].imgByte_RGB[i], type="original", bins_num=16)[0])
+                        bins.append(self.imagesModels[1].get_histogram(data=self.imagesModels[1].imgByte_RGB[i], type="original", bins_num=16)[1])
+                    bg1 = pg.BarGraphItem(x=bins, height=histos, width=0.6, brush=pens)
+                    self.img2_output_histo.addItem(bg1)
 
             logger.info(f"Viewing {selected_component} Component Of Image{combo_id + 1}")
 
