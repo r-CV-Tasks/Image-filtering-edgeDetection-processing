@@ -314,11 +314,11 @@ class ImageProcessor(m.Ui_MainWindow):
         # If 2nd tab is selected
         elif tab_id == 1:
             selected_component = self.combo_histogram.currentText().lower()
-            print(selected_component)
+
             # Histograms Options
             if combo_id == 3:
                 if selected_component == "original histogram":
-                    histo, bins = self.imagesModels[1].get_histogram(type="original")
+                    histo, bins = self.imagesModels[1].get_histogram(data= self.imagesModels[1].imgByte, type="original", bins_num=255)
                     bg1 = pg.BarGraphItem(x=bins, height=histo, width=0.6, brush='r')
                     self.img2_input_histo.addItem(bg1)
 
@@ -329,17 +329,31 @@ class ImageProcessor(m.Ui_MainWindow):
                 if selected_component == "equalized histogram":
                     histo = self.imagesModels[1].get_histogram(type="equalized")
                     # self.displayImage(histo, self.img2_output_histo)
-                    # TODO plot histogram and distribution curve
+
                 elif selected_component == "normalized histogram":
-                    histo = self.imagesModels[1].get_histogram(type="normalized")
-                    # self.displayImage(histo, self.img2_output_histo)
+                    normalized_image, normalized_histo, bins = self.imagesModels[1].get_histogram(data= self.imagesModels[1].imgByte, type="normalized", norm_value=255, bins_num=255)
+                    self.display_image(normalized_image, self.img2_output)
+                    bg1 = pg.BarGraphItem(x=bins, height=normalized_histo, width=0.6, brush='r')
+                    self.img2_output_histo.addItem(bg1)
 
                 elif selected_component == "local thresholding":
-                    local_threshold = self.imagesModels[1].thresholding(type="local")
+                    local_threshold = self.imagesModels[1].thresholding(type="local", threshold=128)
                     self.display_image(local_threshold, self.img2_output)
+
                 elif selected_component == "global thresholding":
-                    global_threshold = self.imagesModels[1].thresholding(type="global")
+                    global_threshold = self.imagesModels[1].thresholding(type="global", threshold=128)
+                    histo, bins = self.imagesModels[1].get_histogram(data=global_threshold, type="original", bins_num=2)
+                    bg1 = pg.BarGraphItem(x=bins, height=histo, width=0.6, brush='r')
+                    self.img2_output_histo.addItem(bg1)
+
+                    # Auto scale Y Axis
+                    vb = self.img2_output_histo.getViewBox()
+                    vb.setAspectLocked(lock=False)
+                    vb.setAutoVisible(y=1.0)
+                    vb.enableAutoRange(axis='y', enable=True)
+
                     self.display_image(global_threshold, self.img2_output)
+
                 elif selected_component == "transform to gray":
                     gray_image = self.imagesModels[1].to_gray()
                     self.display_image(gray_image, self.img2_output)
