@@ -18,6 +18,9 @@ class ImageModel():
 
         self.imgPath = imgPath
         self.imgByte = cv2.imread(self.imgPath, flags=cv2.IMREAD_GRAYSCALE).T
+        bgr_img = cv2.imread(self.imgPath)
+        bgr_img_rot = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2RGB)
+        self.imgByte_RGB = cv2.transpose(bgr_img_rot)
         self.imgShape = self.imgByte.shape
 
     def add_noise(self, type: str, snr: float = 0.5, sigma: int = 64) -> np.ndarray:
@@ -128,14 +131,9 @@ class ImageModel():
         return threshold_image
 
 
-    def to_gray(self):
+    def rgb_to_gray(self, data: np.array):
         """
 
         :return:
         """
-
-        gray_image = None
-
-        # TODO: Apply RGB to Gray Scale Conversion
-
-        return gray_image
+        return np.dot(data[..., :3], [0.299, 0.587, 0.114])
