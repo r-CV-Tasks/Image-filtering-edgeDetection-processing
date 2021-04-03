@@ -3,27 +3,6 @@ import numpy as np
 from libs import Noise, LowPass
 from libs import Histogram
 
-
-class ImageModel():
-
-    """
-    A class that represents the ImageModel
-    """
-
-    def __init__(self, imgPath: str):
-        """
-
-        :param imgPath: absolute path of the image
-        """
-
-        self.imgPath = imgPath
-        self.imgByte = cv2.imread(self.imgPath, flags=cv2.IMREAD_GRAYSCALE).T
-        bgr_img = cv2.imread(self.imgPath)
-        bgr_img_rot = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2RGB)
-        self.imgByte_RGB = cv2.transpose(bgr_img_rot)
-        self.imgShape = self.imgByte.shape
-
-
 def add_noise(data: np.array, type: str, snr: float = 0.5, sigma: int = 64) -> np.ndarray:
     """
     This function adds different types of noises to the given image
