@@ -41,5 +41,6 @@ def threshold_image(data: np.ndarray, threshold: int, type: str = "global"):
     elif type == "local":
         pass
 
+
 def rgb_to_gray(data: np.ndarray):
     return np.dot(data[..., :3], [0.299, 0.587, 0.114])
