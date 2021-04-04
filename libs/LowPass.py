@@ -5,6 +5,7 @@
 
 import numpy as np
 from scipy.signal import convolve2d
+import scipy.stats as st
 
 
 def ZeroPadImage(source: np.ndarray, f: int) -> np.ndarray:
@@ -41,7 +42,10 @@ def CreateSquareKernel(size: int, mode: str, sigma: [int, float] = None) -> np.n
     if mode == 'ones':
         return np.ones((size, size))
     elif mode == 'gaussian':
-        return np.random.normal(0, sigma, (size, size))
+        space = np.linspace(np.sqrt(sigma), -np.sqrt(sigma), size*size)
+        kernel1d = np.diff(st.norm.cdf(space))
+        kernel2d = np.outer(kernel1d, kernel1d)
+        return kernel2d/kernel2d.sum()
 
 
 def ApplyKernel(source: np.ndarray, kernel: np.ndarray, mode: str) -> np.ndarray:

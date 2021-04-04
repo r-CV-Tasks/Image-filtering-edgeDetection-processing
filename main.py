@@ -4,13 +4,11 @@ from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtCore import QThread, pyqtSignal
 import pyqtgraph as pg
-from UI import mainGUI as m
-import cv2
-import numpy as np
-from libs.imageModel import ImageModel
-from libs.helpers import map_ranges
-from libs.Histogram import histogram
 from threading import Thread
+from UI import mainGUI as m
+from libs.helpers import map_ranges
+from libs.imageModel import *
+
 
 # importing module
 import logging
@@ -73,6 +71,7 @@ class ImageProcessor(m.Ui_MainWindow):
         self.currentNoiseImage = None
 
         self.imagesModels = [..., ..., ..., ...]
+        self.imagesData = {1: ..., 2:..., 3:..., 4:...}
         self.heights = [..., ..., ..., ...]
         self.weights = [..., ..., ..., ...]
 
@@ -101,11 +100,14 @@ class ImageProcessor(m.Ui_MainWindow):
         self.btn_load_3.clicked.connect(lambda: self.load_file(self.tab_index))
         self.btn_load_4.clicked.connect(lambda: self.load_file(self.tab_index + 1))
 
-        # # Setup Combo Connections
+        # Setup Combo Connections
         self.combo_noise.activated.connect(lambda: self.combo_box_changed(self.tab_index, 0))
         self.combo_filter.activated.connect(lambda: self.combo_box_changed(self.tab_index, 1))
         self.combo_edges.activated.connect(lambda: self.combo_box_changed(self.tab_index, 2))
         self.combo_histogram.activated.connect(lambda: self.combo_box_changed(self.tab_index, 3))
+
+        # Setup Hybrid Button
+        self.btn_hybrid.clicked.connect(lambda: self.hybrid_image())
 
         # # Test Threads
         # # Setup Combo Connections
@@ -119,16 +121,6 @@ class ImageProcessor(m.Ui_MainWindow):
         # self.img2_input_histo.plotItem.setTitle("Histogram")
         # self.img2_input_histo.plotItem.showGrid(True, True, alpha=0.8)
         # self.img2_input_histo.plotItem.setLabel("bottom", text="Pixels")
-
-
-        x = np.arange(1000)
-        y = np.random.normal(size=(3, 1000))
-
-        # for i in range(3):
-        #     # setting pen=(i,3) automatically creates three different-colored pens
-        #     self.img2_input_histo.plot(x, y[i], pen=(i, 3))
-
-
 
     def tab_changed(self):
         self.tab_index = self.tabWidget_process.currentIndex()
@@ -159,14 +151,18 @@ class ImageProcessor(m.Ui_MainWindow):
         logger.info("Browsing the files...")
         repo_path = "./src/Images"
         self.filename, self.format = QtWidgets.QFileDialog.getOpenFileName(None, "Load Image", repo_path,
-                                                                           "*.jpg;;" "*.jpeg;;" "*.png;;")
+                                                                           "*;;" "*.jpg;;" "*.jpeg;;" "*.png;;")
         img_name = self.filename.split('/')[-1]
         if self.filename == "":
             pass
         else:
             image = cv2.imread(self.filename, flags=cv2.IMREAD_GRAYSCALE).T
             self.heights[img_id], self.weights[img_id] = image.shape
-            self.imagesModels[img_id] = ImageModel(self.filename)
+
+            bgr_img = cv2.imread(self.filename)
+            rgb_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2RGB)
+            imgByte_RGB = cv2.transpose(rgb_img)
+            self.imagesData[img_id] = imgByte_RGB
 
             # When Images in Tab1, Tab2 or Image A in Tab 3
             if img_id != 3:
@@ -174,14 +170,14 @@ class ImageProcessor(m.Ui_MainWindow):
                 self.clear_results(tab_id=img_id)
 
                 # Create and Display Original Image
-                self.display_image(self.imagesModels[img_id].imgByte_RGB, self.inputImages[img_id])
+                self.display_image(data=self.imagesData[img_id], widget=self.inputImages[img_id])
 
                 # Enable the combo box and parameters input
                 self.enable_gui(tab_id=img_id)
 
                 # Set Image Name and Size
                 self.imagesLabels[img_id + 1][0].setText(img_name)
-                self.imagesSizes[img_id + 1][0].setText(f"{image.shape[0]}x{image.shape[1]}")
+                self.imagesSizes[img_id + 1][0].setText(f"{self.imagesData[img_id].shape[0]}x{self.imagesData[img_id].shape[1]}")
 
                 logger.info(f"Added Image{img_id + 1}: {img_name} successfully")
 
@@ -192,10 +188,11 @@ class ImageProcessor(m.Ui_MainWindow):
                                       QMessageBox.Ok, QMessageBox.Warning)
                     logger.warning("Warning!!. Images sizes must be the same, please upload another image")
                 else:
-                    self.display_image(self.imagesModels[img_id].imgByte, self.inputImages[img_id])
+                    self.display_image(self.imagesData[img_id], self.inputImages[img_id])
+
                     # Set Image Name and Size
                     self.imagesLabels[img_id + 1][0].setText(img_name)
-                    self.imagesSizes[img_id + 1][0].setText(f"{image.shape[0]}x{image.shape[1]}")
+                    self.imagesSizes[img_id + 1][0].setText(f"{self.imagesData[img_id].shape[0]}x{self.imagesData[img_id].shape[1]}")
                     self.btn_hybrid.setEnabled(True)
                     logger.info(f"Added Image{img_id + 1}: {img_name} successfully")
 
@@ -258,14 +255,16 @@ class ImageProcessor(m.Ui_MainWindow):
             if combo_id == 0:
                 self.snr_slider_1.setEnabled(True)
                 if selected_component == "uniform noise":
-                    self.currentNoiseImage = self.imagesModels[0].add_noise(type="uniform", snr=noise_snr)
+                    self.currentNoiseImage = add_noise(data=self.imagesData[0], type="uniform", snr=noise_snr)
                     self.display_image(data=self.currentNoiseImage, widget=self.filtersImages[combo_id])
+
                 elif selected_component == "gaussian noise":
                     self.sigma_slider_1.setEnabled(True)
-                    self.currentNoiseImage = self.imagesModels[0].add_noise(type="gaussian", snr=noise_snr, sigma=noise_sigma)
+                    self.currentNoiseImage = add_noise(data=self.imagesData[0], type="gaussian", snr=noise_snr, sigma=noise_sigma)
                     self.display_image(data=self.currentNoiseImage, widget=self.filtersImages[combo_id])
+
                 elif selected_component == "salt & pepper noise":
-                    self.currentNoiseImage = self.imagesModels[0].add_noise(type="salt & pepper", snr=noise_snr)
+                    self.currentNoiseImage = add_noise(data=self.imagesData[0], type="salt & pepper", snr=noise_snr)
                     self.display_image(data=self.currentNoiseImage, widget=self.filtersImages[combo_id])
 
                 # TODO Apply filter when changing the SNR of the noise if it is selected
@@ -273,7 +272,7 @@ class ImageProcessor(m.Ui_MainWindow):
                 if self.currentNoiseImage is not None:
                     selected_component = self.updateCombos[1].currentText().lower()
 
-            # libs Options
+            # Filters Options
             if combo_id == 1:
                 self.mask_size_1.setEnabled(True)
 
@@ -281,34 +280,37 @@ class ImageProcessor(m.Ui_MainWindow):
                 if self.currentNoiseImage is None:
                     self.show_message(header="Warning!!", message="Apply noise to the image first",
                                      button=QMessageBox.Ok, icon=QMessageBox.Warning)
+
                 elif selected_component == "average filter":
-                    filtered_image = self.imagesModels[0].apply_filter(data=self.currentNoiseImage, type="average",
-                                                                       shape=mask_size)
+                    filtered_image = apply_filter(data=self.currentNoiseImage, type="average", shape=mask_size)
                     self.display_image(data=filtered_image, widget=self.filtersImages[combo_id])
+
                 elif selected_component == "gaussian filter":
                     self.sigma_slider_2.setEnabled(True)
-                    filtered_image = self.imagesModels[0].apply_filter(data=self.currentNoiseImage, type="gaussian",
-                                                                       shape=mask_size, sigma=filter_sigma)
+                    filtered_image = apply_filter(data=self.currentNoiseImage, type="gaussian", shape=mask_size, sigma=filter_sigma)
                     self.display_image(data=filtered_image, widget=self.filtersImages[combo_id])
+
                 elif selected_component == "median filter":
-                    filtered_image = self.imagesModels[0].apply_filter(data=self.currentNoiseImage, type="median",
-                                                                       shape=mask_size)
+                    filtered_image = apply_filter(data=self.currentNoiseImage, type="median", shape=mask_size)
                     self.display_image(data=filtered_image, widget=self.filtersImages[combo_id])
 
             # Edge Detection Options
             if combo_id == 2:
                 if selected_component == "sobel mask":
-                    edged_image = self.imagesModels[0].apply_edge_mask(type="sobel")
-                    self.display_image(edged_image, self.filtersImages[combo_id])
+                    edged_image = apply_edge_mask(data=self.imagesData[0], type="sobel")
+                    self.display_image(data=edged_image, widget=self.filtersImages[combo_id])
+
                 elif selected_component == "roberts mask":
-                    edged_image = self.imagesModels[0].apply_edge_mask(type="roberts")
-                    self.display_image(edged_image, self.filtersImages[combo_id])
+                    edged_image = apply_edge_mask(data=self.imagesData[0], type="roberts")
+                    self.display_image(data=edged_image, widget=self.filtersImages[combo_id])
+
                 elif selected_component == "prewitt mask":
-                    edged_image = self.imagesModels[0].apply_edge_mask(type="perwitt")
-                    self.display_image(edged_image, self.filtersImages[combo_id])
+                    edged_image = apply_edge_mask(data=self.imagesData[0], type="perwitt")
+                    self.display_image(data=edged_image, widget=self.filtersImages[combo_id])
+
                 elif selected_component == "canny mask":
-                    edged_image = self.imagesModels[0].apply_edge_mask(type="canny")
-                    self.display_image(edged_image, self.filtersImages[combo_id])
+                    edged_image = apply_edge_mask(data=self.imagesData[0], type="canny")
+                    self.display_image(data=edged_image, widget=self.filtersImages[combo_id])
 
             logger.info(f"Viewing {selected_component} Component Of Image{combo_id + 1}")
 
@@ -319,65 +321,56 @@ class ImageProcessor(m.Ui_MainWindow):
             # Histograms Options
             if combo_id == 3:
                 if selected_component == "original histogram":
-                    histo, bins = self.imagesModels[1].get_histogram(data= self.imagesModels[1].imgByte, type="original", bins_num=255)
-                    bg1 = pg.BarGraphItem(x=bins, height=histo, width=0.6, brush='r')
-                    self.img2_input_histo.addItem(bg1)
-
-                    # setting pen=(i,3) automatically creates three different-colored pens
-                    # self.img2_input_histo.plot(bins, histo, pin="red")
-                    # self.img2_input_histo.plot(x=bins, y=histo, brush="g")
+                    histo, bins = get_histogram(data=self.imagesData[1], type="original", bins_num=255)
+                    self.display_bar_graph(widget=self.img2_input_histo, x=bins, y=histo, width=0.6, brush='r')
 
                 if selected_component == "equalized histogram":
-                    histo = self.imagesModels[1].get_histogram(type="equalized")
-                    # self.displayImage(histo, self.img2_output_histo)
+                    histo, bins = get_histogram(data=self.imagesData[1], type="equalized", bins_num=255)
+                    self.display_bar_graph(widget=self.img2_output_histo, x=bins, y=histo, width=0.6, brush='r')
+                    self.display_image(data=histo, widget=self.img2_output)
 
                 elif selected_component == "normalized histogram":
-                    normalized_image, normalized_histo, bins = self.imagesModels[1].get_histogram(data= self.imagesModels[1].imgByte, type="normalized", norm_value=255, bins_num=255)
-                    self.display_image(normalized_image, self.img2_output)
-                    bg1 = pg.BarGraphItem(x=bins, height=normalized_histo, width=0.6, brush='r')
-                    self.img2_output_histo.addItem(bg1)
+                    normalized_image, histo, bins = get_histogram(data=self.imagesData[1], type="normalized", bins_num=255)
+                    self.display_bar_graph(widget=self.img2_output_histo, x=bins, y=histo, width=0.6, brush='r')
+                    self.display_image(data=normalized_image, widget=self.img2_output)
 
                 elif selected_component == "local thresholding":
                     # TODO Add Local Thresholding
-                    local_threshold = self.imagesModels[1].thresholding(type="local", threshold=128)
-                    self.display_image(local_threshold, self.img2_output)
+                    local_threshold = thresholding(data=self.imagesData[1], type="local", threshold=128)
+                    histo, bins = get_histogram(data=local_threshold, type="original", bins_num=10)
+                    self.display_bar_graph(widget=self.img2_output_histo, x=bins, y=histo, width=0.6, brush='r')
+                    self.display_image(data=local_threshold, widget=self.img2_output)
 
                 elif selected_component == "global thresholding":
-                    global_threshold = self.imagesModels[1].thresholding(type="global", threshold=128)
-                    histo, bins = self.imagesModels[1].get_histogram(data=global_threshold, type="original", bins_num=2)
-                    bg1 = pg.BarGraphItem(x=bins, height=histo, width=0.6, brush='r')
-                    self.img2_output_histo.addItem(bg1)
-
-                    # Auto scale Y Axis
-                    vb = self.img2_output_histo.getViewBox()
-                    vb.setAspectLocked(lock=False)
-                    vb.setAutoVisible(y=1.0)
-                    vb.enableAutoRange(axis='y', enable=True)
-
-                    self.display_image(global_threshold, self.img2_output)
+                    global_threshold = thresholding(data=self.imagesData[1], type="global", threshold=128)
+                    histo, bins = get_histogram(data=global_threshold, type="original", bins_num=2)
+                    self.display_bar_graph(widget=self.img2_output_histo, x=bins, y=histo, width=0.6, brush='r')
+                    self.display_image(data=global_threshold, widget=self.img2_output)
 
                 elif selected_component == "transform to gray":
-                    gray_image = self.imagesModels[1].rgb_to_gray(self.imagesModels[1].imgByte_RGB)
-                    self.display_image(gray_image, self.img2_output)
-
-                    # for i in range(3):
-                    #     # setting pen=(i,3) automatically creates three different-colored pens
-                    #     self.img2_input_histo.plot(x, y[i], pen=(i, 3))
+                    gray_image = rgb_to_gray(data=self.imagesData[1])
+                    self.display_image(data=gray_image, widget=self.img2_output)
 
                     # TODO: Plot R, G and B Histograms separately
-                    histos = []
-                    bins = []
                     pens = [pg.mkPen(color=(255, 0, 0)), pg.mkPen(color=(0, 255, 0)),
                                  pg.mkPen(color=(0, 0, 255))]
-                    # pens = ['r', 'g', 'b']
 
                     for i in range(3):
-                        histos.append(self.imagesModels[1].get_histogram(data=self.imagesModels[1].imgByte_RGB[i], type="original", bins_num=16)[0])
-                        bins.append(self.imagesModels[1].get_histogram(data=self.imagesModels[1].imgByte_RGB[i], type="original", bins_num=16)[1])
-                    bg1 = pg.BarGraphItem(x=bins, height=histos, width=0.6, brush=pens)
-                    self.img2_output_histo.addItem(bg1)
+                        # setting pen=(i,3) automatically creates three different-colored pens
+                        y, x = get_histogram(data=self.imagesData[i], type="original", bins_num=255)
+                        self.img2_output_histo.plot(x, y[:-1], pen=pens[i])
+
+                    # TODO: Plot R, G and B Cumulative Curve
 
             logger.info(f"Viewing {selected_component} Component Of Image{combo_id + 1}")
+
+    def hybrid_image(self):
+        """
+
+        :return:
+        """
+        self.hybrid_image = mix_images(data1=self.imagesData[2], data2=self.imagesData[3], hpf_size=20, lpf_size=15)
+        self.display_image(widget=self.imgX_output, data=self.hybrid_image)
 
     def slider_changed(self, indx, val):
         """
@@ -410,6 +403,27 @@ class ImageProcessor(m.Ui_MainWindow):
         widget.view.setRange(xRange=[0, data.shape[0]], yRange=[0, data.shape[1]],
                              padding=0)
         widget.ui.roiPlot.hide()
+
+    def display_bar_graph(self, widget, x, y, width, brush):
+        """
+
+        :param x:
+        :param y:
+        :param width:
+        :param brush:
+        :param widget:
+        :return:
+        """
+
+        # Create BarGraphItem and add it to the widget
+        bg = pg.BarGraphItem(x=x, height=y, width=width, brush=brush)
+        widget.addItem(bg)
+
+        # Auto scale Y Axis
+        vb = widget.getViewBox()
+        vb.setAspectLocked(lock=False)
+        vb.setAutoVisible(y=1.0)
+        vb.enableAutoRange(axis='y', enable=True)
 
     @staticmethod
     def show_message(header, message, button, icon):
