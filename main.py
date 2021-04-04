@@ -100,11 +100,14 @@ class ImageProcessor(m.Ui_MainWindow):
         self.btn_load_3.clicked.connect(lambda: self.load_file(self.tab_index))
         self.btn_load_4.clicked.connect(lambda: self.load_file(self.tab_index + 1))
 
-        # # Setup Combo Connections
+        # Setup Combo Connections
         self.combo_noise.activated.connect(lambda: self.combo_box_changed(self.tab_index, 0))
         self.combo_filter.activated.connect(lambda: self.combo_box_changed(self.tab_index, 1))
         self.combo_edges.activated.connect(lambda: self.combo_box_changed(self.tab_index, 2))
         self.combo_histogram.activated.connect(lambda: self.combo_box_changed(self.tab_index, 3))
+
+        # Setup Hybrid Button
+        self.btn_hybrid.clicked.connect(lambda: self.hybrid_image())
 
         # # Test Threads
         # # Setup Combo Connections
@@ -185,7 +188,8 @@ class ImageProcessor(m.Ui_MainWindow):
                                       QMessageBox.Ok, QMessageBox.Warning)
                     logger.warning("Warning!!. Images sizes must be the same, please upload another image")
                 else:
-                    self.display_image(self.imagesModels[img_id].imgByte, self.inputImages[img_id])
+                    self.display_image(self.imagesData[img_id], self.inputImages[img_id])
+
                     # Set Image Name and Size
                     self.imagesLabels[img_id + 1][0].setText(img_name)
                     self.imagesSizes[img_id + 1][0].setText(f"{self.imagesData[img_id].shape[0]}x{self.imagesData[img_id].shape[1]}")
@@ -359,6 +363,14 @@ class ImageProcessor(m.Ui_MainWindow):
                     # TODO: Plot R, G and B Cumulative Curve
 
             logger.info(f"Viewing {selected_component} Component Of Image{combo_id + 1}")
+
+    def hybrid_image(self):
+        """
+
+        :return:
+        """
+        self.hybrid_image = mix_images(data1=self.imagesData[2], data2=self.imagesData[3], hpf_size=20, lpf_size=15)
+        self.display_image(widget=self.imgX_output, data=self.hybrid_image)
 
     def slider_changed(self, indx, val):
         """
