@@ -42,7 +42,7 @@ class ImageProcessor(m.Ui_MainWindow):
         # Images Lists
         self.inputImages = [self.img1_input, self.img2_input, self.imgA_input, self.imgB_input]
         self.filtersImages = [self.img1_noisy, self.img1_filtered, self.img1_edged]
-        self.histoImages = [self.img2_input_histo, self.img2_output_histo, self.img2_output]
+        self.histoImages = [self.img2_input_histo, self.img2_output, self.img2_output_histo]
 
         self.imageWidgets = [self.img1_input, self.img1_noisy, self.img1_filtered, self.img1_edged,
                              self.img2_input, self.img2_output,
@@ -87,13 +87,16 @@ class ImageProcessor(m.Ui_MainWindow):
         self.combo_histogram.activated.connect(lambda: self.combo_box_changed(self.tab_index, 3))
 
         # Setup Hybrid Button
-        self.btn_hybrid.clicked.connect(lambda: self.hybrid_image())
+        self.btn_hybrid.clicked.connect(self.hybrid_image)
 
         self.setup_images_view()
 
     def tab_changed(self):
+        """
+        Updates the current tab index
+        :return:
+        """
         self.tab_index = self.tabWidget_process.currentIndex()
-        print(self.tab_index)
 
     def setup_images_view(self):
         """
@@ -138,6 +141,10 @@ class ImageProcessor(m.Ui_MainWindow):
                 # Reset Results
                 self.clear_results(tab_id=img_id)
 
+                # Clear imgX output when uploading a new image
+                if self.tab_index == 2:
+                    self.clear_results(tab_id=self.tab_index)
+
                 # Create and Display Original Image
                 self.display_image(data=self.imagesData[img_id], widget=self.inputImages[img_id])
 
@@ -158,6 +165,9 @@ class ImageProcessor(m.Ui_MainWindow):
                                       QMessageBox.Ok, QMessageBox.Warning)
                     logger.warning("Warning!!. Images sizes must be the same, please upload another image")
                 else:
+                    # Reset Results
+                    self.clear_results(tab_id=img_id)
+
                     self.display_image(self.imagesData[img_id], self.inputImages[img_id])
 
                     # Set Image Name and Size
@@ -190,13 +200,12 @@ class ImageProcessor(m.Ui_MainWindow):
             # Clear Images Widgets
             for i in range(len(self.filtersImages)):
                 self.filtersImages[i].clear()
+        elif tab_id == 1:
+            for widget in self.histoImages:
+                widget.clear()
 
-    def handle_combo(self, tab_id, combo_id):
-        # Start a new thread for this Client
-        # Using Multiple threads to allow Multi-client connections.
-        # Each thread handles one client in a separate function
-        thread = Thread(target=self.combo_box_changed, args=(tab_id, combo_id))
-        thread.start()
+        elif tab_id == 2:
+            self.imgX_output.clear()
 
     def combo_box_changed(self, tab_id, combo_id):
         """
@@ -293,8 +302,9 @@ class ImageProcessor(m.Ui_MainWindow):
                             pg.mkPen(color=(0, 0, 255))]
 
                     for i in range(self.imagesData[1].shape[2]):
-                        # setting pen=(i,3) automatically creates three different-colored pens
                         y, x = get_histogram(data=self.imagesData[1][:, :, i], type="original", bins_num=255)
+
+                        # setting pen=(i,3) automatically creates three different-colored pens
                         self.img2_input_histo.plot(x, y[:-1], pen=pens[i])
 
                 if selected_component == "equalized histogram":
