@@ -305,7 +305,7 @@ class ImageProcessor(m.Ui_MainWindow):
                     self.display_image(data=edged_image, widget=self.filtersImages[combo_id])
 
                 elif selected_component == "prewitt mask":
-                    edged_image = apply_edge_mask(data=self.imagesData[0], type="perwitt")
+                    edged_image = apply_edge_mask(data=self.imagesData[0], type="prewitt")
                     self.display_image(data=edged_image, widget=self.filtersImages[combo_id])
 
                 elif selected_component == "canny mask":

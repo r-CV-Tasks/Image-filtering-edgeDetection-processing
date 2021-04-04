@@ -3,6 +3,7 @@ import numpy as np
 from libs import Noise, LowPass
 from libs import Histogram
 from libs import FFilters
+from libs import EdgeDetection
 
 def add_noise(data: np.array, type: str, snr: float = 0.5, sigma: int = 64) -> np.ndarray:
     """
@@ -56,16 +57,15 @@ def apply_edge_mask(data: np.array, type: str, shape: int = 3):
     edged_image = None
 
     if type == "sobel":
-        # TODO: Add Sobel Mask Algorithm on self.imgByte
-        pass
+        edged_image = EdgeDetection.sobel_edge(data)
 
     elif type == "roberts":
         # TODO: Add Roberts Mask Algorithm on self.imgByte
-        pass
+        edged_image = EdgeDetection.roberts_edge(data)
 
     elif type == "prewitt":
         # TODO: Add Prewitt Mask Algorithm on self.imgByte
-        pass
+        edged_image = EdgeDetection.prewitt_edge(data)
 
     elif type == "canny":
         # TODO: Add Canny Mask Algorithm on self.imgByte
