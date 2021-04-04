@@ -88,7 +88,7 @@ def LocalThreshold(source: np.ndarray, divs: int) -> np.ndarray:
     # Calculate the mean and threshold for each split
     for ix, x in enumerate(splits):
         for iy, y in enumerate(x):
-            threshold = np.mean(y).astype(int)
+            threshold = int(np.mean(y))
             splits[ix][iy] = threshold_image(splits[ix][iy], threshold)
         c1.append(np.concatenate(splits[ix], -1))
 
