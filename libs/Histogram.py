@@ -77,8 +77,12 @@ def local_threshold(data: np.ndarray, divs: int) -> np.ndarray:
     :return: Threshold-ed image
     """
     # Vertical Split of the Image
+    src = np.copy(data)
+    if len(src.shape) > 2:
+        src = rgb_to_gray(data)
+
     s = np.sqrt(divs)
-    v_splits = np.split(data, s)
+    v_splits = np.split(src, s)
 
     splits = []
     for sp in v_splits:
