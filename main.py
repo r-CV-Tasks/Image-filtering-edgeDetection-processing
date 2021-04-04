@@ -298,43 +298,41 @@ class ImageProcessor(m.Ui_MainWindow):
             # Histograms Options
             if combo_id == 3:
                 if selected_component == "original histogram":
-                    pens = [pg.mkPen(color=(255, 0, 0)), pg.mkPen(color=(0, 255, 0)),
-                            pg.mkPen(color=(0, 0, 255))]
-
-                    for i in range(self.imagesData[1].shape[2]):
-                        y, x = get_histogram(data=self.imagesData[1][:, :, i], type="original", bins_num=255)
-
-                        # setting pen=(i,3) automatically creates three different-colored pens
-                        self.img2_input_histo.plot(x, y[:-1], pen=pens[i])
+                    self.img2_input_histo.clear()
+                    self.draw_rgb_histogram(data=self.imagesData[1], widget=self.img2_input_histo)
 
                 if selected_component == "equalized histogram":
+                    self.img2_output_histo.clear()
                     histo, bins = get_histogram(data=self.imagesData[1], type="equalized", bins_num=255)
-                    self.display_bar_graph(widget=self.img2_output_histo, x=bins, y=histo, width=0.6, brush='r',
-                                           title="Equalized Histogram", label="Pixels")
+                    self.draw_rgb_histogram(data=histo, widget=self.img2_output_histo)
                     self.display_image(data=histo, widget=self.img2_output)
 
                 elif selected_component == "normalized histogram":
-                    normalized_image, histo, bins = get_histogram(data=self.imagesData[1], type="normalized",
-                                                                  bins_num=255)
-                    self.display_bar_graph(widget=self.img2_output_histo, x=bins, y=histo, width=0.6, brush='r',
-                                           title="Normalized Histogram", label="Pixels")
+                    self.img2_output_histo.clear()
+                    normalized_image, histo, bins = get_histogram(data=self.imagesData[1], type="normalized", bins_num=255)
+                    self.draw_rgb_histogram(data=normalized_image, widget=self.img2_output_histo)
                     self.display_image(data=normalized_image, widget=self.img2_output)
 
                 elif selected_component == "local thresholding":
+                    self.img2_output_histo.clear()
                     local_threshold = thresholding(data=self.imagesData[1], type="local", threshold=128, divs=4)
-                    histo, bins = get_histogram(data=local_threshold, type="original", bins_num=10)
+                    histo, bins = get_histogram(data=local_threshold, type="original", bins_num=2)
                     self.display_bar_graph(widget=self.img2_output_histo, x=bins, y=histo, width=0.6, brush='r',
                                            title="Local Histogram", label="Pixels")
+
                     self.display_image(data=local_threshold, widget=self.img2_output)
 
                 elif selected_component == "global thresholding":
+                    self.img2_output_histo.clear()
                     global_threshold = thresholding(data=self.imagesData[1], type="global", threshold=128)
                     histo, bins = get_histogram(data=global_threshold, type="original", bins_num=2)
                     self.display_bar_graph(widget=self.img2_output_histo, x=bins, y=histo, width=0.6, brush='r',
                                            title="Global Histogram", label="Pixels")
+
                     self.display_image(data=global_threshold, widget=self.img2_output)
 
                 elif selected_component == "transform to gray":
+                    self.img2_output_histo.clear()
                     gray_image = rgb_to_gray(data=self.imagesData[1])
                     self.display_image(data=gray_image, widget=self.img2_output)
                     histo, bins = get_histogram(data=gray_image, type="original", bins_num=255)
@@ -407,6 +405,34 @@ class ImageProcessor(m.Ui_MainWindow):
         vb.setAspectLocked(lock=False)
         vb.setAutoVisible(y=1.0)
         vb.enableAutoRange(axis='y', enable=True)
+
+    def draw_rgb_histogram(self, data: np.ndarray, widget):
+        """
+
+        :param data:
+        :param widget:
+        :return:
+        """
+
+        pens = [pg.mkPen(color=(255, 0, 0)), pg.mkPen(color=(0, 255, 0)),
+                pg.mkPen(color=(0, 0, 255))]
+
+        for i in range(data.shape[2]):
+            y, x = get_histogram(data=data[:, :, i], type="original", bins_num=255)
+
+            # setting pen=(i,3) automatically creates three different-colored pens
+            widget.plot(x, y[:-1], pen=pens[i])
+
+    def draw_gray_histogram(self, data: np.ndarray, widget, bins_num):
+        """
+
+        :param data:
+        :param widget:
+        :param bins_num:
+        :return:
+        """
+        y, x = get_histogram(data=data, type="original", bins_num=bins_num)
+        widget.plot(x, y)
 
     @staticmethod
     def show_message(header, message, button, icon):
