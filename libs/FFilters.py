@@ -4,6 +4,7 @@
 #
 
 import numpy as np
+from imageModel import rgb_to_gray
 
 
 def SquareZeroPad(source: np.ndarray, size_x: int, size_y: int) -> np.ndarray:
@@ -26,22 +27,28 @@ def SquareZeroPad(source: np.ndarray, size_x: int, size_y: int) -> np.ndarray:
     return np.pad(src, ((out_x, out_xx), (out_y, out_yy)), constant_values=0)
 
 
-def __FFilter__(source: np.ndarray, size: int, kernel: np.ndarray) ->np.ndarray:
+def __FFilter(source: np.ndarray, kernel: np.ndarray) -> np.ndarray:
     """
         Application of a Filter in frequency domain
     :param source: Source Image
-    :param size: An Integer that denotes the Kernel size if 3
-                   then the kernel is (3, 3)
     :param kernel: Kernel applied on image
     :return: Filtered Image
     """
     src = np.copy(source)
 
+    # Covert Image to gray scale
+    src = rgb_to_gray(src)
+
     # Convert Image to Frequency Domain
+    # and decentralize the output
     ft_src = np.fft.fft2(src)
+    ft_src_shifted = np.fft.fftshift(ft_src)
 
     # apply Kernel
-    return ft_src * kernel
+    out = np.fft.ifftshift(ft_src_shifted * kernel)
+    out = np.fft.ifft2(out)
+
+    return np.abs(out)
 
 
 def HighPass(source: np.ndarray, size: int) -> np.ndarray:
@@ -52,15 +59,13 @@ def HighPass(source: np.ndarray, size: int) -> np.ndarray:
                    then the kernel is (3, 3)
     :return: Filtered Image
     """
-    x, y = source.shape
-
     # Create a kernel with ones in the middle for high frequencies
-    kernel = SquareZeroPad(np.ones((size, size)), x, y)
+    kernel = SquareZeroPad(np.ones((size, size)), source.shape[0], source.shape[1])
 
     # Apply Kernel
-    out = __FFilter__(source, size, kernel)
+    out = __FFilter(source, kernel)
 
-    return np.fft.ifft2(out)
+    return out
 
 
 def LowPass(source: np.ndarray, size: int) -> np.ndarray:
@@ -71,12 +76,10 @@ def LowPass(source: np.ndarray, size: int) -> np.ndarray:
                    then the kernel is (3, 3)
     :return: Filtered Image
     """
-    x, y = source.shape
-
     # Create Kernel with ones on the edges for low frequencies
-    kernel = 1 - SquareZeroPad(np.ones((size, size)), x, y)
+    kernel = 1 - SquareZeroPad(np.ones((size, size)), source.shape[0], source.shape[1])
 
     # Apply Kernel
-    out = __FFilter__(source, size, kernel)
+    out = __FFilter(source, kernel)
 
-    return np.fft.ifft2(out)
+    return out
