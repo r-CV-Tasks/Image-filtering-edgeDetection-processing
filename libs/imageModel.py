@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from libs import Noise, LowPass
 from libs import Histogram
+from libs import FFilters
 
 def add_noise(data: np.array, type: str, snr: float = 0.5, sigma: int = 64) -> np.ndarray:
     """
@@ -119,3 +120,19 @@ def rgb_to_gray(data: np.array):
     :return:
     """
     return np.dot(data[..., :3], [0.299, 0.587, 0.114])
+
+
+def mix_images(data1: np.ndarray, data2: np.ndarray, hpf_size: int = 15, lpf_size: int = 15):
+    """
+
+    :param data1:
+    :param data2:
+    :param hpf_size:
+    :param lpf_size:
+    :return:
+    """
+
+    image1_dft = FFilters.HighPass(data1, hpf_size)
+    image2_dft = FFilters.LowPass(data2, lpf_size)
+
+    return image1_dft + image2_dft
