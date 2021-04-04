@@ -21,14 +21,14 @@ def histogram(data: np.array, bins_num: int = 255):
     return hist, bins
 
 
-def equalize_histogram(source: np.ndarray):
+def equalize_histogram(data: np.ndarray, bins_num: int = 256):
     """
         Histogram Equalization Implementation
     :param source: Input Source Image
     :return: Equalized Image
     """
     # Calculate the Occurrences of each pixel in the input
-    hist_array = np.bincount(source.flatten(), minlength=256)
+    hist_array = np.bincount(data.flatten(), minlength=bins_num)
 
     # Normalize Resulted array
     px_count = np.sum(hist_array)
@@ -41,11 +41,11 @@ def equalize_histogram(source: np.ndarray):
     trans_map = np.floor(255 * hist_array)
 
     # Transform Mapping to Image
-    img1d = list(source.flatten())
+    img1d = list(data.flatten())
     map_img1d = [trans_map[px] for px in img1d]
 
     # Reshape Image
-    map_img2d = np.reshape(np.asarray(map_img1d), source.shape)
+    map_img2d = np.reshape(np.asarray(map_img1d), data.shape)
 
     return map_img2d
 
@@ -58,7 +58,7 @@ def normalize_histogram(data: np.array, bins_num: int = 255):
     return norm, histo, bins
 
 
-def threshold_image(data: np.ndarray, threshold: int, type: str = "global"):
+def threshold_image(data: np.ndarray, threshold: int, type: str = "global", size: int = 32):
     if type == "global":
         gray_img = rgb_to_gray(data)
         return (gray_img > threshold).astype(int)
@@ -68,4 +68,4 @@ def threshold_image(data: np.ndarray, threshold: int, type: str = "global"):
 
 
 def rgb_to_gray(data: np.ndarray):
-    return np.dot(data[..., :3], [0.299, 0.587, 0.114])
+    return np.dot(data[..., :3], [0.299, 0.587, 0.114]).astype('uint8')

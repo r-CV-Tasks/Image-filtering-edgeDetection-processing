@@ -88,7 +88,7 @@ def get_histogram(data: np.array, type: str, bins_num: int = 255):
     if type == "equalized":
         # TODO: Get Equalized Histogram of self.imgByte
         hist, bins = Histogram.equalize_histogram(data=data, bins_num=bins_num)
-        pass
+        return hist, bins
 
     elif type == "normalized":
         norm, histo, bins = Histogram.normalize_histogram(data=data, bins_num=bins_num)
