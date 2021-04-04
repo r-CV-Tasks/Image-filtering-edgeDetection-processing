@@ -60,11 +60,9 @@ def apply_edge_mask(data: np.array, type: str, shape: int = 3):
         edged_image = EdgeDetection.sobel_edge(data)
 
     elif type == "roberts":
-        # TODO: Add Roberts Mask Algorithm on self.imgByte
         edged_image = EdgeDetection.roberts_edge(data)
 
     elif type == "prewitt":
-        # TODO: Add Prewitt Mask Algorithm on self.imgByte
         edged_image = EdgeDetection.prewitt_edge(data)
 
     elif type == "canny":
@@ -86,7 +84,6 @@ def get_histogram(data: np.array, type: str, bins_num: int = 255):
         return hist, bins
 
     if type == "equalized":
-        # TODO: Get Equalized Histogram of self.imgByte
         hist, bins = Histogram.equalize_histogram(data=data, bins_num=bins_num)
         return hist, bins
 
@@ -95,21 +92,23 @@ def get_histogram(data: np.array, type: str, bins_num: int = 255):
         return norm, histo, bins
 
 
-def thresholding(data: np.array, type: str, threshold: int = 128):
+def thresholding(data: np.array, type: str, threshold: int = 128, divs: int = 4):
     """
 
+    :param data:
     :param type:
+    :param threshold:
+    :param divs:
     :return:
     """
 
     threshold_image = None
 
     if type == "local":
-        # TODO: Apply Local Thresholding on self.imgByte
-        pass
+        threshold_image = Histogram.local_threshold(data=data, divs=divs)
 
     elif type == "global":
-        threshold_image = Histogram.threshold_image(data=data, threshold=threshold, type="global")
+        threshold_image = Histogram.global_threshold(data=data, threshold=threshold)
 
     return threshold_image
 

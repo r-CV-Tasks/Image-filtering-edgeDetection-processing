@@ -58,7 +58,7 @@ def normalize_histogram(data: np.array, bins_num: int = 255):
     return norm, histo, bins
 
 
-def threshold_image(data: np.ndarray, threshold: int):
+def global_threshold(data: np.ndarray, threshold: int):
     src = np.copy(data)
     if len(src.shape) > 2:
         src = rgb_to_gray(data)
@@ -69,7 +69,7 @@ def rgb_to_gray(data: np.ndarray):
     return np.dot(data[..., :3], [0.299, 0.587, 0.114]).astype('uint8')
 
 
-def LocalThreshold(source: np.ndarray, divs: int) -> np.ndarray:
+def local_threshold(data: np.ndarray, divs: int) -> np.ndarray:
     """
         Global Thresholding Implementation using mean
     :param source: Input Source Image
@@ -78,7 +78,7 @@ def LocalThreshold(source: np.ndarray, divs: int) -> np.ndarray:
     """
     # Vertical Split of the Image
     s = np.sqrt(divs)
-    v_splits = np.split(source, s)
+    v_splits = np.split(data, s)
 
     splits = []
     for sp in v_splits:
@@ -89,7 +89,7 @@ def LocalThreshold(source: np.ndarray, divs: int) -> np.ndarray:
     for ix, x in enumerate(splits):
         for iy, y in enumerate(x):
             threshold = int(np.mean(y))
-            splits[ix][iy] = threshold_image(splits[ix][iy], threshold)
+            splits[ix][iy] = global_threshold(splits[ix][iy], threshold)
         c1.append(np.concatenate(splits[ix], -1))
 
     out = np.concatenate(c1)

@@ -321,8 +321,7 @@ class ImageProcessor(m.Ui_MainWindow):
                     self.display_image(data=normalized_image, widget=self.img2_output)
 
                 elif selected_component == "local thresholding":
-                    # TODO Add Local Thresholding
-                    local_threshold = thresholding(data=self.imagesData[1], type="local", threshold=128)
+                    local_threshold = thresholding(data=self.imagesData[1], type="local", threshold=128, divs=4)
                     histo, bins = get_histogram(data=local_threshold, type="original", bins_num=10)
                     self.display_bar_graph(widget=self.img2_output_histo, x=bins, y=histo, width=0.6, brush='r',
                                            title="Local Histogram", label="Pixels")
