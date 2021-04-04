@@ -72,7 +72,7 @@ def rgb_to_gray(data: np.ndarray):
 def local_threshold(data: np.ndarray, divs: int) -> np.ndarray:
     """
         Global Thresholding Implementation using mean
-    :param source: Input Source Image
+    :param data: Input Source Image
     :param divs: Number of Regions
     :return: Threshold-ed image
     """
